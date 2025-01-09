@@ -21,19 +21,48 @@ const redis = new Redis({
 })
 
 async function scrapeAuthorPage(url: string): Promise<Product[] | null> {
-  // Strip everything after '?' from the URL and trim any whitespace
+  // Strip everything after '?' from the URL and extract author ID
   const cleanUrl = url.split('?')[0].trim();
+  const authorId = cleanUrl.split('/author/')[1]?.split('/')[0];
   
-  // Check if processed data exists in Redis
-  const redisKey = `author:${cleanUrl}`;
-  console.log('Redis key:', JSON.stringify(redisKey)); // Log the exact key being used
-  const cachedData = await redis.get(redisKey);
-  if (cachedData && typeof cachedData === 'string') {
-    console.log('Cache hit for URL:', cleanUrl);
-    return JSON.parse(cachedData) as Product[] | null;
+  if (!authorId) {
+    console.error('Could not extract author ID from URL:', cleanUrl);
+    return null;
   }
 
-  console.log('Cache miss for URL:', cleanUrl);
+  // Check if processed data exists in Redis
+  const redisKey = `author:${authorId}`;
+  console.log('Redis key:', JSON.stringify(redisKey));
+  console.log('Attempting Redis get for key:', redisKey);
+  const cachedData = await redis.get(redisKey);
+  
+  if (cachedData) {
+    console.log('Cache data structure:', JSON.stringify(cachedData));
+    if (typeof cachedData === 'string') {
+      try {
+        const parsed = JSON.parse(cachedData) as Product[] | null;
+        if (parsed) {
+          console.log('Cache hit for author ID:', authorId, 'Found', parsed.length, 'products');
+          return parsed;
+        }
+      } catch (e) {
+        console.error('Error parsing cached string data:', e);
+      }
+    } else if (Array.isArray(cachedData)) {
+      console.log('Cache hit for author ID:', authorId, 'Found', cachedData.length, 'products');
+      return cachedData as Product[];
+    } else if (typeof cachedData === 'object' && cachedData !== null) {
+      // Check if it's our processedData structure
+      const data = cachedData as { products: Product[] };
+      if (data.products && Array.isArray(data.products)) {
+        console.log('Cache hit for author ID:', authorId, 'Found', data.products.length, 'products');
+        return data.products;
+      }
+      console.log('Cached object does not contain products array');
+    }
+  }
+
+  console.log('Cache miss for author ID:', authorId);
   const html = await getAuthorPage(cleanUrl);
   const $ = cheerio.load(html);
   const products = await extractProductsFromHtml($);
@@ -58,8 +87,10 @@ async function scrapeAuthorPage(url: string): Promise<Product[] | null> {
     products: uniqueProducts
   };
 
-  // Cache the processed data
-  await redis.set(`author:${cleanUrl}`, JSON.stringify(processedData), { ex: 24 * 60 * 60 }); // 24 hours expiration
+  // Store the processed data in Redis with 24 hour expiration
+  console.log('Storing in Redis with key:', redisKey);
+  await redis.set(redisKey, JSON.stringify(processedData), { ex: 24 * 60 * 60 }); // 24 hours expiration
+  console.log('Redis set completed');
 
   return uniqueProducts;
 }
