@@ -19,12 +19,21 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { DownloadButton } from "./download-button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible"
+import { createClient } from '@/utils/supabase/client'
 
 export default function UrlToCsvConverter() {
   const [url, setUrl] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [csvData, setCsvData] = useState<string[][]>([])
+  const [productData, setProductData] = useState<Array<{
+    asin: string;
+    author: string;
+    rating: string;
+    type: string;
+    title: string;
+    url: string;
+    price: number | string;
+  }>>([])
   const [csvUrl, setCsvUrl] = useState<string | null>(null)
   const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null)
 
@@ -39,37 +48,36 @@ export default function UrlToCsvConverter() {
         throw new Error('Please enter a valid URL')
       }
 
-      const response = await fetch('/api/scrape', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ url: url }),
-      })
-
-      if (!response.ok) {
-        const contentType = response.headers.get('Content-Type');
-        let errorMessage;
-        
-        if (contentType?.includes('application/json')) {
-          const errorData = await response.json();
-          errorMessage = errorData.error;
-        } else {
-          errorMessage = await response.text();
-        }
-        
-        throw new Error(errorMessage || 'Failed to convert URL to CSV');
+      const supabase = createClient()
+      
+      // Get the current session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError) {
+        throw new Error('Authentication error. Please sign in again.')
       }
 
-      const usageCount = parseInt(response.headers.get('X-Usage-Count') || '0')
-      const usageLimit = parseInt(response.headers.get('X-Usage-Limit') || '0')
-      setUsage({ used: usageCount, limit: usageLimit })
+      if (!session) {
+        throw new Error('No active session. Please sign in.')
+      }
 
-      const csvText = await response.text()
-      const rows = csvText.split('\n').map(row => row.split(','))
-      setCsvData(rows)
-      setCsvUrl(response.headers.get('X-Download-Url'))
-      toast.success('CSV file generated successfully')
+      const { data, error: functionError } = await supabase.functions.invoke('asin-gather', {
+        body: { url },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      })
+
+      if (functionError) {
+        throw new Error(functionError.message || 'Failed to fetch product data')
+      }
+
+      if (!data || !data.products) {
+        throw new Error('Invalid response from server')
+      }
+
+      setProductData(data.products)
+      toast.success('Product data fetched successfully')
       
       window.dispatchEvent(new Event('recordsUpdated'))
       
@@ -88,9 +96,9 @@ export default function UrlToCsvConverter() {
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle>Amazon URL to ASIN CSV Generator</CardTitle>
+            <CardTitle>Amazon URL to Product Data Generator</CardTitle>
             <CardDescription>
-              Enter an author&apos;s Amazon page URL to get their books as ASINs
+              Enter an author&apos;s Amazon page URL to get their books as product data
             </CardDescription>
           </div>
           {usage && (
@@ -114,7 +122,7 @@ export default function UrlToCsvConverter() {
               />
             </div>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Converting...' : 'Convert to CSV'}
+              {isLoading ? 'Fetching...' : 'Fetch Product Data'}
             </Button>
           </div>
         </form>
@@ -127,12 +135,12 @@ export default function UrlToCsvConverter() {
           </Alert>
         )}
 
-        {(csvData.length > 0 || isLoading) && (
+        {(productData.length > 0 || isLoading) && (
           <Collapsible className="rounded-md border">
             <div className="px-4 py-2 flex items-center justify-between">
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2">
-                  View Results {csvData.length > 0 && `(${csvData.length - 1} rows)`}
+                  View Results {productData.length > 0 && `(${productData.length} rows)`}
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </CollapsibleTrigger>
@@ -144,16 +152,20 @@ export default function UrlToCsvConverter() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    {csvData[0]?.map((header, index) => (
-                      <TableHead key={index}>{header}</TableHead>
-                    ))}
+                    <TableHead>ASIN</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Author</TableHead>
+                    <TableHead>Rating</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>URL</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
                     Array.from({ length: 5 }).map((_, rowIndex) => (
                       <TableRow key={rowIndex}>
-                        {Array.from({ length: csvData[0]?.length || 3 }).map((_, cellIndex) => (
+                        {Array.from({ length: 7 }).map((_, cellIndex) => (
                           <TableCell key={cellIndex}>
                             <Skeleton className="h-4 w-full" />
                           </TableCell>
@@ -161,22 +173,30 @@ export default function UrlToCsvConverter() {
                       </TableRow>
                     ))
                   ) : (
-                    csvData.slice(1).map((row, rowIndex) => (
+                    productData.map((product, rowIndex) => (
                       <TableRow key={rowIndex}>
-                        {row.map((cell, cellIndex) => (
-                          <TableCell key={cellIndex}>
-                            {cell.startsWith('http') ? (
-                              <a 
-                                href={cell}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-800 underline"
-                              >
-                                {cell}
-                              </a>
-                            ) : cell}
-                          </TableCell>
-                        ))}
+                        <TableCell>{product.asin}</TableCell>
+                        <TableCell>{product.title}</TableCell>
+                        <TableCell>{product.author}</TableCell>
+                        <TableCell>{product.rating}</TableCell>
+                        <TableCell>{product.type}</TableCell>
+                        <TableCell>{
+                          !product.price || isNaN(parseFloat(product.price as string))
+                            ? 'N/A'
+                            : `$${typeof product.price === 'number' 
+                                ? product.price.toFixed(2)
+                                : parseFloat(product.price).toFixed(2)}`
+                        }</TableCell>
+                        <TableCell>
+                          <a 
+                            href={product.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 underline"
+                          >
+                            {product.url}
+                          </a>
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
