@@ -1,6 +1,5 @@
 'use client'
 
-import { Suspense } from 'react';
 import UrlToCsvConverter from "@/components/url-to-csv-converter";
 import { PreviousRecords } from "@/components/previous-records";
 import { useState, useRef } from 'react';

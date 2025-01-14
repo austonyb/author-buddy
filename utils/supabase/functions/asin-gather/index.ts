@@ -276,6 +276,21 @@ async function recordDownload(supabaseClient: any, userId: string, data: any): P
   }
 }
 
+function getHumanReadableProductType(type: string | undefined): string {
+  if (!type) return 'unknown';
+  
+  const typeMap: Record<string, string> = {
+    'ABIS_EBOOKS': 'ebook',
+    'ABIS_BOOK': 'book',
+    'ABIS_MUSIC': 'music',
+    'BOOKS_AND_MAGAZINES': 'book',
+    'DOWNLOADABLE_AUDIO': 'audiobook',
+    'KINDLE_UNLIMITED': 'ebook'
+  };
+
+  return typeMap[type] || type.toLowerCase();
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -363,7 +378,7 @@ Deno.serve(async (req) => {
       title: product.title,
       author: product.author,
       rating: product.rating,
-      type: product.type,
+      type: getHumanReadableProductType(product.type),
       url: product.url,
       price: product.price
     }));
