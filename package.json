@@ -22,7 +22,9 @@
     "prettier": "^3.3.3",
     "react": "19.0.0",
     "react-dom": "19.0.0",
+    "react-spreadsheet": "^0.9.5",
     "react-wrap-balancer": "^1.1.1",
+    "scheduler": "^0.25.0",
     "sonner": "^1.7.1"
   },
   "devDependencies": {

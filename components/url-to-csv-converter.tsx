@@ -8,23 +8,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AlertCircle, ChevronDown } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { toast } from "sonner"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import Spreadsheet from 'react-spreadsheet'
 import { Skeleton } from "@/components/ui/skeleton"
 import { DownloadButton } from "./download-button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible"
 import { createClient } from '@/utils/supabase/client'
+import { cn } from "@/lib/utils"
 
 export default function UrlToCsvConverter() {
   const [url, setUrl] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isOpen, setIsOpen] = useState(false)
   const [productData, setProductData] = useState<Array<{
     asin: string;
     author: string;
@@ -36,6 +31,17 @@ export default function UrlToCsvConverter() {
   }>>([])
   const [csvUrl, setCsvUrl] = useState<string | null>(null)
   const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null)
+
+  // Transform product data for spreadsheet
+  const spreadsheetData = productData.map(product => [
+    { value: product.asin },
+    { value: product.author },
+    { value: product.title },
+    { value: product.rating },
+    { value: product.type },
+    { value: product.price.toString() },
+    { value: product.url }
+  ])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -77,6 +83,7 @@ export default function UrlToCsvConverter() {
       }
 
       setProductData(data.products)
+      setIsOpen(true) // Auto-open the results section
       toast.success('Product data fetched successfully')
       
       window.dispatchEvent(new Event('recordsUpdated'))
@@ -92,7 +99,7 @@ export default function UrlToCsvConverter() {
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto mt-10">
+    <Card className="w-full">
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
@@ -110,7 +117,7 @@ export default function UrlToCsvConverter() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="mb-6">
-          <div className="grid w-full items-center gap-4">
+          <div className="grid w-full items-start gap-4">
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="url">URL</Label>
               <Input
@@ -136,10 +143,10 @@ export default function UrlToCsvConverter() {
         )}
 
         {(productData.length > 0 || isLoading) && (
-          <Collapsible className="rounded-md border">
-            <div className="px-4 py-2 flex items-center justify-between">
+          <Collapsible className="rounded-md border" open={isOpen} onOpenChange={setIsOpen}>
+            <div className="px-4 py-2 flex items-start justify-between">
               <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2">
+                <Button variant="ghost" className="flex items-start gap-2">
                   View Results {productData.length > 0 && `(${productData.length} rows)`}
                   <ChevronDown className="h-4 w-4" />
                 </Button>
@@ -149,59 +156,22 @@ export default function UrlToCsvConverter() {
               )}
             </div>
             <CollapsibleContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ASIN</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Author</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>URL</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    Array.from({ length: 5 }).map((_, rowIndex) => (
-                      <TableRow key={rowIndex}>
-                        {Array.from({ length: 7 }).map((_, cellIndex) => (
-                          <TableCell key={cellIndex}>
-                            <Skeleton className="h-4 w-full" />
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    productData.map((product, rowIndex) => (
-                      <TableRow key={rowIndex}>
-                        <TableCell>{product.asin}</TableCell>
-                        <TableCell>{product.title}</TableCell>
-                        <TableCell>{product.author}</TableCell>
-                        <TableCell>{product.rating}</TableCell>
-                        <TableCell>{product.type}</TableCell>
-                        <TableCell>{
-                          !product.price || isNaN(parseFloat(product.price as string))
-                            ? 'N/A'
-                            : `$${typeof product.price === 'number' 
-                                ? product.price.toFixed(2)
-                                : parseFloat(product.price).toFixed(2)}`
-                        }</TableCell>
-                        <TableCell>
-                          <a 
-                            href={product.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 underline"
-                          >
-                            {product.url}
-                          </a>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+              {isLoading ? (
+                <div className="p-4">
+                  <Skeleton className="h-[200px] w-full" />
+                </div>
+              ) : productData.length > 0 ? (
+                <div className="p-4 overflow-auto">
+                  <div className="[&_.Spreadsheet]:w-full [&_.Spreadsheet]:border-none [&_.Spreadsheet]:bg-background [&_.Spreadsheet__header]:bg-muted [&_.Spreadsheet__cell]:border-border [&_.Spreadsheet__cell]:bg-background [&_.Spreadsheet__cell]:text-foreground [&_.Spreadsheet__cell--selected]:!bg-primary/20 [&_.Spreadsheet__cell--readonly]:!bg-muted">
+                    <Spreadsheet
+                      data={spreadsheetData}
+                      columnLabels={['ASIN', 'Author', 'Title', 'Rating', 'Type', 'Price', 'URL']}
+                      darkMode={true}
+                      rowLabels={productData.map((_, i) => (i + 1).toString())}
+                    />
+                  </div>
+                </div>
+              ) : null}
             </CollapsibleContent>
           </Collapsible>
         )}
