@@ -80,7 +80,7 @@ export const PreviousRecords = forwardRef<{ revalidate: () => void }, PreviousRe
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">
-                    {download.data.length} products
+                    {download.data[0]?.author || 'Unknown Author'} - {download.data.length} books
                   </span>
                 </div>
                 <span>{new Date(download.created_at).toLocaleString('en-US', {

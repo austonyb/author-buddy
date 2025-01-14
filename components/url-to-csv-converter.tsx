@@ -7,11 +7,12 @@ import { createClient } from '@/utils/supabase/client'
 import { UrlInputForm } from './asin-gather/url-input-form'
 
 interface UrlToCsvConverterProps {
-  onResultsChange: (state: { isOpen: boolean; productData: ProductData[]; selectedType: string }) => void;
+  onResultsChange: (state: { isOpen: boolean; productData: ProductData[]; selectedType: string; isLoading: boolean }) => void;
   resultsState: {
     isOpen: boolean;
     productData: ProductData[];
     selectedType: string;
+    isLoading: boolean;
   };
   onSubmitSuccess?: () => void;
 }
@@ -23,6 +24,7 @@ export default function UrlToCsvConverter({ onResultsChange, resultsState, onSub
 
   const handleSubmit = async (url: string) => {
     setIsLoading(true)
+    onResultsChange({ ...resultsState, isLoading: true })
     setError(null)
 
     try {
@@ -60,7 +62,8 @@ export default function UrlToCsvConverter({ onResultsChange, resultsState, onSub
       onResultsChange({
         isOpen: true,
         productData: data.products,
-        selectedType: 'all'
+        selectedType: 'all',
+        isLoading: false
       })
 
       // Notify parent of successful submission
@@ -71,6 +74,7 @@ export default function UrlToCsvConverter({ onResultsChange, resultsState, onSub
     } catch (error) {
       console.error('Error:', error)
       setError(error instanceof Error ? error.message : 'An unexpected error occurred')
+      onResultsChange({ ...resultsState, isLoading: false })
       toast.error(error instanceof Error ? error.message : 'An unexpected error occurred')
     } finally {
       setIsLoading(false)
@@ -80,8 +84,7 @@ export default function UrlToCsvConverter({ onResultsChange, resultsState, onSub
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Amazon URL to Product Data Generator</CardTitle>
-        <CardDescription>
+        <CardDescription className='font-semibold'>
           Enter an author's Amazon page URL to get their books as product data
         </CardDescription>
       </CardHeader>
