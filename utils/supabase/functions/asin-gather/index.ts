@@ -104,11 +104,12 @@ async function checkUserPlanAndUsage(supabaseClient: any, userId: string): Promi
   try {
     console.log('Checking plan for user:', userId);
 
-    // Get user's current active plan with plan details
+    // Get user's current active plan with plan details and usage
     const { data: userPlan, error: planError } = await supabaseClient
       .from('user_plans')
       .select(`
         id,
+        total_usage,
         plan_id,
         plans!inner (
           id,
@@ -142,34 +143,8 @@ async function checkUserPlanAndUsage(supabaseClient: any, userId: string): Promi
       return { allowed: false, error: 'Plan configuration not found' };
     }
 
-    // Get current month's usage
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
-    console.log('Checking usage since:', startOfMonth.toISOString());
-
-    const { data: usageData, error: usageError } = await supabaseClient
-      .from('usage')
-      .select('usage_amount')
-      .eq('user_plan_id', userPlan.id)
-      .gte('usage_date', startOfMonth.toISOString());
-
-    if (usageError) {
-      console.error('Usage error details:', {
-        error: usageError,
-        message: usageError.message,
-        details: usageError.details,
-        hint: usageError.hint
-      });
-      return { allowed: false, error: `Error checking usage: ${usageError.message}` };
-    }
-
-    console.log('Usage data:', usageData);
-
-    // Calculate total usage
-    const totalUsage = usageData?.reduce((sum: any, record: any) => sum + (record.usage_amount || 0), 0) || 0;
     const maxUsage = userPlan.plans?.max_usage;
+    const totalUsage = userPlan.total_usage || 0;
 
     console.log('Usage calculation:', {
       totalUsage,
@@ -213,7 +188,7 @@ async function recordUsage(supabaseClient: any, userId: string): Promise<{ error
     // Get user's current plan ID
     const { data: userPlan, error: planError } = await supabaseClient
       .from('user_plans')
-      .select('id')
+      .select('id, total_usage')
       .eq('user_id', userId)
       .is('end_date', null)
       .single();
@@ -227,7 +202,7 @@ async function recordUsage(supabaseClient: any, userId: string): Promise<{ error
       return { error: 'No active plan found' };
     }
 
-    // Record usage
+    // Record usage in both tables
     const { error: usageError } = await supabaseClient
       .from('usage')
       .insert({
@@ -240,10 +215,64 @@ async function recordUsage(supabaseClient: any, userId: string): Promise<{ error
       return { error: 'Error recording usage' };
     }
 
+    // Update total_usage and last_usage_date in user_plans
+    const { error: updateError } = await supabaseClient
+      .from('user_plans')
+      .update({ 
+        total_usage: (userPlan.total_usage || 0) + 1,
+        last_usage_date: new Date().toISOString()
+      })
+      .eq('id', userPlan.id);
+
+    if (updateError) {
+      console.error('Error updating user_plans:', updateError);
+      return { error: 'Error updating usage totals' };
+    }
+
     return {};
   } catch (error) {
     console.error('Unexpected error in recordUsage:', error);
     return { error: 'Unexpected error recording usage' };
+  }
+}
+
+async function recordDownload(supabaseClient: any, userId: string, data: any): Promise<{ error?: string }> {
+  try {
+    // Get user's current plan ID
+    const { data: userPlan, error: planError } = await supabaseClient
+      .from('user_plans')
+      .select('id')
+      .eq('user_id', userId)
+      .is('end_date', null)
+      .single();
+
+    if (planError) {
+      console.error('Plan error in recordDownload:', planError);
+      return { error: 'Error finding user plan' };
+    }
+
+    if (!userPlan) {
+      return { error: 'No active plan found' };
+    }
+
+    // Record the download
+    const { error: downloadError } = await supabaseClient
+      .from('downloads')
+      .insert({
+        user_id: userId,
+        user_plan_id: userPlan.id,
+        data: data
+      });
+
+    if (downloadError) {
+      console.error('Error recording download:', downloadError);
+      return { error: 'Error recording download' };
+    }
+
+    return {};
+  } catch (error) {
+    console.error('Unexpected error in recordDownload:', error);
+    return { error: 'Unexpected error recording download' };
   }
 }
 
@@ -320,6 +349,12 @@ Deno.serve(async (req) => {
     const { error: recordError } = await recordUsage(supabaseClient, user.id);
     if (recordError) {
       console.error('Failed to record usage:', recordError);
+    }
+
+    // Record the download
+    const { error: downloadError } = await recordDownload(supabaseClient, user.id, products);
+    if (downloadError) {
+      console.error('Failed to record download:', downloadError);
     }
 
     // Parse the products into JSON format

@@ -5,15 +5,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner"
 import { createClient } from '@/utils/supabase/client'
 import { UrlInputForm } from './asin-gather/url-input-form'
-import { ResultsDisplay } from './asin-gather/results-display'
 
-export default function UrlToCsvConverter() {
+interface UrlToCsvConverterProps {
+  onResultsChange: (state: { isOpen: boolean; productData: ProductData[]; selectedType: string }) => void;
+  resultsState: {
+    isOpen: boolean;
+    productData: ProductData[];
+    selectedType: string;
+  };
+  onSubmitSuccess?: () => void;
+}
+
+export default function UrlToCsvConverter({ onResultsChange, resultsState, onSubmitSuccess }: UrlToCsvConverterProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isOpen, setIsOpen] = useState(false)
-  const [productData, setProductData] = useState<ProductData[]>([])
   const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null)
-  const [selectedType, setSelectedType] = useState<string>('all')
 
   const handleSubmit = async (url: string) => {
     setIsLoading(true)
@@ -51,50 +57,44 @@ export default function UrlToCsvConverter() {
         throw new Error('Invalid response from server')
       }
 
-      setProductData(data.products)
-      setIsOpen(true)
-      toast.success('Product data fetched successfully')
+      onResultsChange({
+        isOpen: true,
+        productData: data.products,
+        selectedType: 'all'
+      })
+
+      // Notify parent of successful submission
+      onSubmitSuccess?.()
       
+      // Dispatch event to update records list
       window.dispatchEvent(new Event('recordsUpdated'))
-      
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred'
-      toast.error(errorMessage)
-      setError(errorMessage)
+    } catch (error) {
+      console.error('Error:', error)
+      setError(error instanceof Error ? error.message : 'An unexpected error occurred')
+      toast.error(error instanceof Error ? error.message : 'An unexpected error occurred')
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
         <CardTitle>Amazon URL to Product Data Generator</CardTitle>
         <CardDescription>
-          Enter an author&apos;s Amazon page URL to get their books as product data
+          Enter an author's Amazon page URL to get their books as product data
         </CardDescription>
-        {usage && (
-          <div className="text-sm font-medium text-muted-foreground">
-            Usage: {usage.used} / {usage.limit} requests
-          </div>
-        )}
       </CardHeader>
       <CardContent>
-        <UrlInputForm
-          onSubmit={handleSubmit}
-          isLoading={isLoading}
-          error={error}
-          usage={usage}
-        />
-
-        <ResultsDisplay
-          isLoading={isLoading}
-          productData={productData}
-          selectedType={selectedType}
-          onTypeChange={setSelectedType}
-          isOpen={isOpen}
-          onOpenChange={setIsOpen}
-        />
+        <UrlInputForm onSubmit={handleSubmit} isLoading={isLoading} />
+        {error && (
+          <p className="text-sm text-red-500 mt-2">{error}</p>
+        )}
+        {usage && (
+          <p className="text-sm text-gray-500 mt-2">
+            Usage: {usage.used}/{usage.limit}
+          </p>
+        )}
       </CardContent>
     </Card>
   )
