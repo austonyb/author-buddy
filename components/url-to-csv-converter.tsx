@@ -86,7 +86,12 @@ export default function UrlToCsvConverter({ onResultsChange, resultsState, onSub
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <UrlInputForm onSubmit={handleSubmit} isLoading={isLoading} />
+        <UrlInputForm 
+          onSubmit={handleSubmit} 
+          isLoading={isLoading}
+          error={error}
+          usage={usage}
+        />
         {error && (
           <p className="text-sm text-red-500 mt-2">{error}</p>
         )}
