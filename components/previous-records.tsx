@@ -29,6 +29,15 @@ export const PreviousRecords = forwardRef<{ revalidate: () => void }, PreviousRe
 
     const fetchDownloads = async () => {
       const supabase = createClient();
+      
+      // Get the current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.error('No authenticated session found');
+        return;
+      }
+
       const { data: downloads, error } = await supabase
         .from('downloads')
         .select('id, created_at, data')

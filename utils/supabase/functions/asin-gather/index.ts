@@ -285,10 +285,16 @@ function getHumanReadableProductType(type: string | undefined): string {
     'ABIS_MUSIC': 'music',
     'BOOKS_AND_MAGAZINES': 'book',
     'DOWNLOADABLE_AUDIO': 'audiobook',
-    'KINDLE_UNLIMITED': 'ebook'
+    'KINDLE_UNLIMITED': 'ebook',
+    'ABIS_AUDIBLE': 'audiobook',
+    'DIGITAL_EBOOK': 'ebook',
+    'DIGITAL_TEXT': 'ebook'
   };
 
-  return typeMap[type] || type.toLowerCase();
+  // Normalize the input type by converting to uppercase and removing spaces
+  const normalizedType = type.toUpperCase().trim();
+  
+  return typeMap[normalizedType] || 'other';
 }
 
 Deno.serve(async (req) => {
