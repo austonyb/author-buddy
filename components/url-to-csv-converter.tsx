@@ -1,54 +1,21 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertCircle, ChevronDown } from 'lucide-react'
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { toast } from "sonner"
-import Spreadsheet from 'react-spreadsheet'
-import { Skeleton } from "@/components/ui/skeleton"
-import { DownloadButton } from "./download-button"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible"
 import { createClient } from '@/utils/supabase/client'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { UrlInputForm } from './asin-gather/url-input-form'
+import { ResultsDisplay } from './asin-gather/results-display'
 
 export default function UrlToCsvConverter() {
-  const [url, setUrl] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isOpen, setIsOpen] = useState(false)
-  const [productData, setProductData] = useState<Array<{
-    asin: string;
-    author: string;
-    rating: string;
-    type: string;
-    title: string;
-    url: string;
-    price: number | string;
-  }>>([])
+  const [productData, setProductData] = useState<ProductData[]>([])
   const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null)
   const [selectedType, setSelectedType] = useState<string>('all')
 
-  // Transform product data for spreadsheet
-  const filteredProductData = selectedType === 'all' 
-    ? productData 
-    : productData.filter(product => product.type === selectedType)
-
-  const spreadsheetData = filteredProductData.map(product => [
-    { value: product.asin },
-    { value: product.author },
-    { value: product.title },
-    { value: product.rating },
-    { value: product.type },
-    { value: product.price.toString() },
-    { value: product.url }
-  ])
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (url: string) => {
     setIsLoading(true)
     setError(null)
 
@@ -59,7 +26,6 @@ export default function UrlToCsvConverter() {
 
       const supabase = createClient()
       
-      // Get the current session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
       if (sessionError) {
@@ -86,7 +52,7 @@ export default function UrlToCsvConverter() {
       }
 
       setProductData(data.products)
-      setIsOpen(true) // Auto-open the results section
+      setIsOpen(true)
       toast.success('Product data fetched successfully')
       
       window.dispatchEvent(new Event('recordsUpdated'))
@@ -97,102 +63,38 @@ export default function UrlToCsvConverter() {
       setError(errorMessage)
     } finally {
       setIsLoading(false)
-      setUrl('')
     }
   }
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle>Amazon URL to Product Data Generator</CardTitle>
-            <CardDescription>
-              Enter an author&apos;s Amazon page URL to get their books as product data
-            </CardDescription>
+        <CardTitle>Amazon URL to Product Data Generator</CardTitle>
+        <CardDescription>
+          Enter an author&apos;s Amazon page URL to get their books as product data
+        </CardDescription>
+        {usage && (
+          <div className="text-sm font-medium text-muted-foreground">
+            Usage: {usage.used} / {usage.limit} requests
           </div>
-          {usage && (
-            <div className="text-sm font-medium text-muted-foreground">
-              Usage: {usage.used} / {usage.limit} requests
-            </div>
-          )}
-        </div>
+        )}
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="mb-6">
-          <div className="grid w-full items-start gap-4">
-            <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="url">URL</Label>
-              <Input
-                id="url"
-                placeholder="https://example.com/data"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                required
-              />
-            </div>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Fetching...' : 'Fetch Product Data'}
-            </Button>
-          </div>
-        </form>
+        <UrlInputForm
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+          error={error}
+          usage={usage}
+        />
 
-        {error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {(productData.length > 0 || isLoading) && (
-          <Collapsible className="rounded-md border" open={isOpen} onOpenChange={setIsOpen}>
-            <div className="px-4 py-2 flex items-start justify-between">
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="flex items-start gap-2">
-                  View Results {productData.length > 0 && `(${productData.length} rows)`}
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </CollapsibleTrigger>
-              {productData.length > 0 && !isLoading && (
-                <DownloadButton data={filteredProductData} />
-              )}
-            </div>
-            <CollapsibleContent>
-              {isLoading ? (
-                <div className="p-4">
-                  <Skeleton className="h-[200px] w-full" />
-                </div>
-              ) : productData.length > 0 ? (
-                <div className="p-4">
-                  <div className="mb-4">
-                    <Label htmlFor="type-filter">Filter by Type</Label>
-                    <Select value={selectedType} onValueChange={setSelectedType}>
-                      <SelectTrigger id="type-filter">
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Types</SelectItem>
-                        {Array.from(new Set(productData.map(p => p.type))).map(type => (
-                          <SelectItem key={type} value={type}>{type}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="overflow-auto [&_.Spreadsheet]:w-full [&_.Spreadsheet]:border-none [&_.Spreadsheet__header]:!bg-muted [&_.Spreadsheet__cell]:!border-border [&_.Spreadsheet__cell]:!bg-card [&_.Spreadsheet__cell]:!text-card-foreground hover:[&_.Spreadsheet__cell]:!bg-muted/50 [&_.Spreadsheet__cell--selected]:!bg-primary/20 [&_.Spreadsheet__header-cell]:!text-muted-foreground [&_.Spreadsheet__header-cell]:!bg-muted">
-                    <Spreadsheet
-                      data={spreadsheetData}
-                      columnLabels={['ASIN', 'Author', 'Title', 'Rating', 'Type', 'Price', 'URL']}
-                      darkMode={false}
-                      rowLabels={filteredProductData.map((_, i) => (i + 1).toString())}
-                      onChange={() => {}}
-                    />
-                  </div>
-                </div>
-              ) : null}
-            </CollapsibleContent>
-          </Collapsible>
-        )}
+        <ResultsDisplay
+          isLoading={isLoading}
+          productData={productData}
+          selectedType={selectedType}
+          onTypeChange={setSelectedType}
+          isOpen={isOpen}
+          onOpenChange={setIsOpen}
+        />
       </CardContent>
     </Card>
   )
