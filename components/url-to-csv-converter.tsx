@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { DownloadButton } from "./download-button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible"
 import { createClient } from '@/utils/supabase/client'
-import { cn } from "@/lib/utils"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function UrlToCsvConverter() {
   const [url, setUrl] = useState('')
@@ -29,11 +29,15 @@ export default function UrlToCsvConverter() {
     url: string;
     price: number | string;
   }>>([])
-  const [csvUrl, setCsvUrl] = useState<string | null>(null)
   const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null)
+  const [selectedType, setSelectedType] = useState<string>('all')
 
   // Transform product data for spreadsheet
-  const spreadsheetData = productData.map(product => [
+  const filteredProductData = selectedType === 'all' 
+    ? productData 
+    : productData.filter(product => product.type === selectedType)
+
+  const spreadsheetData = filteredProductData.map(product => [
     { value: product.asin },
     { value: product.author },
     { value: product.title },
@@ -47,7 +51,6 @@ export default function UrlToCsvConverter() {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
-    setCsvUrl(null)
 
     try {
       if (!url.trim()) {
@@ -151,8 +154,8 @@ export default function UrlToCsvConverter() {
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </CollapsibleTrigger>
-              {csvUrl && !isLoading && (
-                <DownloadButton url={csvUrl} />
+              {productData.length > 0 && !isLoading && (
+                <DownloadButton data={filteredProductData} />
               )}
             </div>
             <CollapsibleContent>
@@ -161,13 +164,28 @@ export default function UrlToCsvConverter() {
                   <Skeleton className="h-[200px] w-full" />
                 </div>
               ) : productData.length > 0 ? (
-                <div className="p-4 overflow-auto">
-                  <div className="[&_.Spreadsheet]:w-full [&_.Spreadsheet]:border-none [&_.Spreadsheet]:bg-background [&_.Spreadsheet__header]:bg-muted [&_.Spreadsheet__cell]:border-border [&_.Spreadsheet__cell]:bg-background [&_.Spreadsheet__cell]:text-foreground [&_.Spreadsheet__cell--selected]:!bg-primary/20 [&_.Spreadsheet__cell--readonly]:!bg-muted">
+                <div className="p-4">
+                  <div className="mb-4">
+                    <Label htmlFor="type-filter">Filter by Type</Label>
+                    <Select value={selectedType} onValueChange={setSelectedType}>
+                      <SelectTrigger id="type-filter">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        {Array.from(new Set(productData.map(p => p.type))).map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="overflow-auto [&_.Spreadsheet]:w-full [&_.Spreadsheet]:border-none [&_.Spreadsheet__header]:!bg-muted [&_.Spreadsheet__cell]:!border-border [&_.Spreadsheet__cell]:!bg-card [&_.Spreadsheet__cell]:!text-card-foreground hover:[&_.Spreadsheet__cell]:!bg-muted/50 [&_.Spreadsheet__cell--selected]:!bg-primary/20 [&_.Spreadsheet__header-cell]:!text-muted-foreground [&_.Spreadsheet__header-cell]:!bg-muted">
                     <Spreadsheet
                       data={spreadsheetData}
                       columnLabels={['ASIN', 'Author', 'Title', 'Rating', 'Type', 'Price', 'URL']}
-                      darkMode={true}
-                      rowLabels={productData.map((_, i) => (i + 1).toString())}
+                      darkMode={false}
+                      rowLabels={filteredProductData.map((_, i) => (i + 1).toString())}
+                      onChange={() => {}}
                     />
                   </div>
                 </div>
