@@ -40,7 +40,7 @@ export default function AsinGather() {
           <header className="flex h-14 items-center gap-4 border-b px-6 bg-background sticky top-0 z-20 shadow-sm">
             <h1 className="text-lg font-semibold">Gather all ASINs by Author</h1>
           </header>
-          <main className="flex-1 overflow-auto p-6">
+          <main className="flex-1 overflow-auto px-4 py-2">
             <motion.div
               layout
               transition={{

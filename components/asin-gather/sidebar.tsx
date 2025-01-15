@@ -10,6 +10,7 @@ import {
 import { UrlInputForm } from "@/components/asin-gather/url-input-form"
 import { PreviousRecords } from "@/components/previous-records"
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
+import { createClient } from '@/utils/supabase/client'
 
 interface SidebarProps {
   onResultsChange: (newState: Partial<SharedResultsState>) => void;
@@ -28,15 +29,44 @@ export function AppSidebar({
   previousRecordsRef,
   className 
 }: SidebarProps) {
+  const supabase = createClient()
+
   const onSubmit = async (url: string) => {
     onResultsChange({ isLoading: true });
     try {
-      // Your existing submit logic here
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session) {
+        throw new Error('Please sign in to use this feature');
+      }
+
+      const response = await fetch('https://ictdjoiczpcthnkbedpz.supabase.co/functions/v1/asin-gather', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ url }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch product data');
+      }
+
+      const data = await response.json();
+      onResultsChange({ 
+        productData: data.products,
+        selectedType: 'all',
+        isLoading: false 
+      });
       onSubmitSuccess();
     } catch (error) {
       console.error('Error:', error);
-    } finally {
-      onResultsChange({ isLoading: false });
+      onResultsChange({ 
+        productData: [],
+        isLoading: false 
+      });
     }
   }
 
