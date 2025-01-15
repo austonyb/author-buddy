@@ -75,7 +75,7 @@ export const PreviousRecords = forwardRef<{ revalidate: () => void }, PreviousRe
     return (
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
-          <CardTitle>Previous Downloads</CardTitle>
+          <h3 className="text-md font-semibold">Previous downloads</h3>
         </CardHeader>
         <CardContent className="space-y-4">
           {paginatedDownloads.map((download) => (

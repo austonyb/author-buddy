@@ -36,10 +36,10 @@ export function UrlInputForm({ onSubmit, isLoading, error, usage }: UrlInputForm
       <form onSubmit={handleSubmit} className="mb-6">
         <div className="grid w-full items-start gap-4">
           <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="url">URL</Label>
+            <Label htmlFor="url">Author URL</Label>
             <Input
               id="url"
-              placeholder="https://example.com/data"
+              placeholder="https://www.amazon.com/stores/author/XXXXXXX/allbooks"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               required

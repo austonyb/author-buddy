@@ -1,12 +1,10 @@
 'use client'
 
-import { Button } from "@/components/ui/button"
-import { ChevronDown } from 'lucide-react'
-import { Skeleton } from "@/components/ui/skeleton"
-import { DownloadButton } from "../download-button"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible"
+import { Search } from "lucide-react"
 import { ProductTypeFilter } from './product-type-filter'
 import { ProductDataGrid } from './product-data-grid'
+import { DownloadButton } from "../download-button"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface ResultsDisplayProps {
   isLoading: boolean;
@@ -21,45 +19,45 @@ export function ResultsDisplay({
   isLoading, 
   productData, 
   selectedType, 
-  onTypeChange,
-  isOpen,
-  onOpenChange
+  onTypeChange
 }: ResultsDisplayProps) {
   const filteredProductData = selectedType === 'all' 
     ? productData 
     : productData.filter(product => product.type === selectedType)
 
-  if (productData.length === 0 && !isLoading) return null
+  if (productData.length === 0 && !isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-10rem)] space-y-4 text-center">
+        <div className="rounded-full bg-muted/50 p-4">
+          <Search className="h-8 w-8 text-muted-foreground" />
+        </div>
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold">No results to display</h3>
+          <p className="text-sm text-muted-foreground max-w-[400px]">
+            Enter an Amazon author URL in the sidebar to fetch their book data.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <Collapsible className="rounded-md border" open={isOpen} onOpenChange={onOpenChange}>
-      <div className="px-4 py-2 flex items-start justify-between">
-        <CollapsibleTrigger asChild>
-          <Button variant="ghost" className="flex items-start gap-2">
-            View Results {productData.length > 0 && `(${productData.length} rows)`}
-            <ChevronDown className="h-4 w-4" />
-          </Button>
-        </CollapsibleTrigger>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <ProductTypeFilter 
+          productData={productData}
+          selectedType={selectedType}
+          onTypeChange={onTypeChange}
+        />
         {productData.length > 0 && !isLoading && (
           <DownloadButton data={filteredProductData} />
         )}
       </div>
-      <CollapsibleContent>
-        {isLoading ? (
-          <div className="p-4">
-            <Skeleton className="h-[200px] w-full" />
-          </div>
-        ) : productData.length > 0 ? (
-          <div className="p-4">
-            <ProductTypeFilter 
-              productData={productData}
-              selectedType={selectedType}
-              onTypeChange={onTypeChange}
-            />
-            <ProductDataGrid data={filteredProductData} />
-          </div>
-        ) : null}
-      </CollapsibleContent>
-    </Collapsible>
+      {isLoading ? (
+        <Skeleton className="h-[500px] w-full" />
+      ) : (
+        <ProductDataGrid data={filteredProductData} />
+      )}
+    </div>
   )
 }

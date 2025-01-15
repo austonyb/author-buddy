@@ -1,17 +1,10 @@
 'use client'
 
-import UrlToCsvConverter from "@/components/url-to-csv-converter";
-import { PreviousRecords } from "@/components/previous-records";
-import { useState, useRef } from 'react';
-import { ResultsDisplay } from '@/components/asin-gather/results-display';
-import { AnimatePresence, motion } from 'framer-motion';
-
-interface SharedResultsState {
-  isOpen: boolean;
-  productData: ProductData[];
-  selectedType: string;
-  isLoading: boolean;
-}
+import { useState, useRef } from 'react'
+import { AppSidebar } from '@/components/asin-gather/sidebar'
+import { ResultsDisplay } from '@/components/asin-gather/results-display'
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { motion } from 'framer-motion'
 
 export default function AsinGather() {
   const [resultsState, setResultsState] = useState<SharedResultsState>({
@@ -30,86 +23,43 @@ export default function AsinGather() {
   };
 
   const handleSubmitSuccess = () => {
-    // Trigger revalidation of previous records
-    previousRecordsRef.current?.revalidate()
+    previousRecordsRef.current?.revalidate();
   };
 
   return (
-    <motion.div 
-      className="container mx-auto py-10 space-y-8"
-      layout
-      transition={{
-        layout: { duration: 0.3, ease: "easeInOut" }
-      }}
-    >
-      <motion.h1 
-        className="text-4xl font-bold"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-      >
-        Gather all ASINs by Author
-      </motion.h1>
-      
-      <AnimatePresence mode="wait">
-        {!resultsState.isOpen && (
-          <motion.div
-            key="input"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ 
-              duration: 0.3,
-              ease: "easeInOut"
-            }}
-            layout
-          >
-            <UrlToCsvConverter
-              onResultsChange={handleResultsChange}
-              resultsState={resultsState}
-              onSubmitSuccess={handleSubmitSuccess}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence mode="wait">
-        {resultsState.isOpen && (
-          <motion.div
-            key="results"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ 
-              duration: 0.3,
-              ease: "easeOut"
-            }}
-            layout
-          >
-            <ResultsDisplay
-              isOpen={resultsState.isOpen}
-              onOpenChange={(isOpen) => handleResultsChange({ isOpen })}
-              productData={resultsState.productData}
-              selectedType={resultsState.selectedType}
-              onTypeChange={(selectedType) => handleResultsChange({ selectedType })}
-              isLoading={resultsState.isLoading}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <motion.div
-        layout
-        transition={{
-          layout: { duration: 0.3, ease: "easeInOut" }
-        }}
-      >
-        <PreviousRecords
-          ref={previousRecordsRef}
+    <SidebarProvider>
+      <div className="flex h-screen w-full overflow-hidden">
+        <AppSidebar
           onResultsChange={handleResultsChange}
           resultsState={resultsState}
+          onSubmitSuccess={handleSubmitSuccess}
+          previousRecordsRef={previousRecordsRef}
+          className="flex-shrink-0"
         />
-      </motion.div>
-    </motion.div>
-  );
+        <div className="flex-1 flex flex-col min-w-0">
+          <header className="flex h-14 items-center gap-4 border-b px-6 bg-background sticky top-0 z-20 shadow-sm">
+            <h1 className="text-lg font-semibold">Gather all ASINs by Author</h1>
+          </header>
+          <main className="flex-1 overflow-auto p-6">
+            <motion.div
+              layout
+              transition={{
+                layout: { duration: 0.3 }
+              }}
+              className="h-full"
+            >
+              <ResultsDisplay
+                isOpen={true}
+                onOpenChange={() => {}}
+                productData={resultsState.productData}
+                selectedType={resultsState.selectedType}
+                onTypeChange={(selectedType) => handleResultsChange({ selectedType })}
+                isLoading={resultsState.isLoading}
+              />
+            </motion.div>
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
+  )
 }

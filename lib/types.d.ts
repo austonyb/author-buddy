@@ -13,3 +13,10 @@ interface ProductData {
     url: string;
     price: number | string;
   }
+
+  interface SharedResultsState {
+    isOpen: boolean;
+    productData: ProductData[];
+    selectedType: string;
+    isLoading: boolean;
+  }
