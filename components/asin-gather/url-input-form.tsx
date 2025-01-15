@@ -1,27 +1,62 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { AlertCircle } from 'lucide-react'
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { createClient } from "@/utils/supabase/client";
 
 interface UrlInputFormProps {
-  onSubmit: (url: string) => Promise<void>;
-  isLoading: boolean;
-  error: string | null;
   usage: { used: number; limit: number } | null;
 }
 
-export function UrlInputForm({ onSubmit, isLoading, error, usage }: UrlInputFormProps) {
-  const [url, setUrl] = useState('')
+export function UrlInputForm({ usage }: UrlInputFormProps) {
+  const [url, setUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const supabase = createClient();
+
+  const onSubmit = async (url: string) => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error("Please sign in to use this feature");
+      }
+
+      const response = await fetch(
+        "https://ictdjoiczpcthnkbedpz.supabase.co/functions/v1/asin-gather",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ url }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch product data");
+      }
+
+      const data = await response.json();
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await onSubmit(url)
-    setUrl('')
-  }
+    e.preventDefault();
+    await onSubmit(url);
+    setUrl("");
+  };
 
   return (
     <div>
@@ -46,7 +81,7 @@ export function UrlInputForm({ onSubmit, isLoading, error, usage }: UrlInputForm
             />
           </div>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Fetching...' : 'Fetch Product Data'}
+            {isLoading ? "Fetching..." : "Fetch Product Data"}
           </Button>
         </div>
       </form>
@@ -59,5 +94,5 @@ export function UrlInputForm({ onSubmit, isLoading, error, usage }: UrlInputForm
         </Alert>
       )}
     </div>
-  )
+  );
 }
