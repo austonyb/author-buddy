@@ -1,27 +1,20 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { AlertCircle } from 'lucide-react'
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useActionState } from "react";
+import { fetchProductData } from "@/lib/actions";
+import { Send } from "lucide-react";
 
 interface UrlInputFormProps {
-  onSubmit: (url: string) => Promise<void>;
-  isLoading: boolean;
-  error: string | null;
   usage: { used: number; limit: number } | null;
 }
 
-export function UrlInputForm({ onSubmit, isLoading, error, usage }: UrlInputFormProps) {
-  const [url, setUrl] = useState('')
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await onSubmit(url)
-    setUrl('')
-  }
+export function UrlInputForm({ usage }: UrlInputFormProps) {
+  const [state, formAction, isPending] = useActionState(fetchProductData, null);
 
   return (
     <div>
@@ -33,31 +26,33 @@ export function UrlInputForm({ onSubmit, isLoading, error, usage }: UrlInputForm
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="mb-6">
+      <form action={formAction} className="mb-6">
         <div className="grid w-full items-start gap-4">
-          <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="url">Author URL</Label>
+          <Label htmlFor="url" className="sr-only">
+            Author URL
+          </Label>
+          <div className="inline-flex items-center gap-2">
             <Input
               id="url"
+              name="url"
               placeholder="https://www.amazon.com/stores/author/XXXXXXX/allbooks"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              pattern="https?:\/\/[^\s]+"
               required
             />
+            <Button type="submit" disabled={isPending}>
+              <Send className="w-4 h-4" />
+            </Button>
           </div>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Fetching...' : 'Fetch Product Data'}
-          </Button>
         </div>
       </form>
 
-      {error && (
+      {state?.error && (
         <Alert variant="destructive" className="mb-6">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{state.error}</AlertDescription>
         </Alert>
       )}
     </div>
-  )
+  );
 }

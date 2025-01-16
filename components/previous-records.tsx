@@ -1,10 +1,17 @@
-'use client'
+"use client";
 
 import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { createClient } from "@/utils/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { ResultsDisplay } from "./asin-gather/results-display";
 
 interface Download {
   id: number;
@@ -12,121 +19,95 @@ interface Download {
   data: ProductData[];
 }
 
-interface PreviousRecordsProps {
-  onResultsChange: (state: { isOpen: boolean; productData: ProductData[]; selectedType: string }) => void;
-  resultsState: {
-    isOpen: boolean;
-    productData: ProductData[];
-    selectedType: string;
-  };
-}
+export function PreviousRecords({ downloads }: { downloads: Download[] }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedDownload, setSelectedDownload] = useState<Download | null>(
+    null
+  );
+  const [open, setOpen] = useState(false);
+  const recordsPerPage = 5;
 
-export const PreviousRecords = forwardRef<{ revalidate: () => void }, PreviousRecordsProps>(
-  function PreviousRecords({ onResultsChange, resultsState }, ref) {
-    const [downloads, setDownloads] = useState<Download[]>([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const recordsPerPage = 10;
+  const paginatedDownloads = downloads.slice(
+    (currentPage - 1) * recordsPerPage,
+    currentPage * recordsPerPage
+  );
 
-    const fetchDownloads = async () => {
-      const supabase = createClient();
-      
-      // Get the current session
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        console.error('No authenticated session found');
-        return;
-      }
+  const totalPages = Math.ceil(downloads.length / recordsPerPage);
 
-      const { data: downloads, error } = await supabase
-        .from('downloads')
-        .select('id, created_at, data')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching downloads:', error);
-        return;
-      }
-
-      setDownloads(downloads || []);
-    };
-
-    useImperativeHandle(ref, () => ({
-      revalidate: fetchDownloads
-    }));
-
-    useEffect(() => {
-      fetchDownloads();
-    }, []);
-
-    const paginatedDownloads = downloads
-      .slice((currentPage - 1) * recordsPerPage, currentPage * recordsPerPage);
-
-    const totalPages = Math.ceil(downloads.length / recordsPerPage);
-
-    const handleDownloadSelect = (download: Download) => {
-      onResultsChange({
-        isOpen: true,
-        productData: download.data,
-        selectedType: 'all'
-      });
-    };
-
-    return (
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardHeader>
-          <h3 className="text-md font-semibold">Previous downloads</h3>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {paginatedDownloads.map((download) => (
-            <Card 
-              key={download.id} 
-              className={`p-4 cursor-pointer transition-colors hover:bg-muted ${
-                resultsState.productData === download.data ? 'bg-muted' : ''
-              }`}
-              onClick={() => handleDownloadSelect(download)}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">
-                    {download.data[0]?.author || 'Unknown Author'} - {download.data.length} books
-                  </span>
-                </div>
-                <span>{new Date(download.created_at).toLocaleString('en-US', {
-                  month: '2-digit',
-                  day: '2-digit',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  timeZoneName: 'short'
-                })}</span>
+  return (
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader>
+        <h3 className="text-md font-semibold">Previous downloads</h3>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {paginatedDownloads.map((download) => (
+          <Card
+            key={download.id}
+            className={`p-4 cursor-pointer transition-colors hover:bg-muted`}
+            onClick={() => {
+              setSelectedDownload(download);
+              setOpen(true);
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">
+                  {download.data[0]?.author || "Unknown Author"}
+                </span>
+                <span className="text-sm font-light">
+                  | {download.data.length} books
+                </span>
               </div>
-            </Card>
-          ))}
-
-          {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-4">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="py-2">
-                Page {currentPage} of {totalPages}
+              <span className="text-xs text-muted-foreground">
+                {new Date(download.created_at).toLocaleString("en-US", {
+                  month: "2-digit",
+                  day: "2-digit",
+                  year: "numeric",
+                })}
               </span>
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
             </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-);
+          </Card>
+        ))}
+
+        {totalPages > 1 && (
+          <div className="flex justify-center gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="py-2">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </CardContent>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="bottom">
+          <SheetHeader>
+            <SheetTitle className="text-xl md:text-2xl text-center mb-4">
+              Excel Spreadsheet Viewer
+            </SheetTitle>
+            <SheetDescription className="sr-only">
+              Edit and download your excel file
+            </SheetDescription>
+          </SheetHeader>
+          <ResultsDisplay
+            productData={selectedDownload?.data || []}
+            selectedType="all"
+            onTypeChange={() => {}}
+          />
+        </SheetContent>
+      </Sheet>
+    </Card>
+  );
+}
