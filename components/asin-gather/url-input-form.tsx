@@ -7,6 +7,7 @@ import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useActionState } from "react";
 import { fetchProductData } from "@/lib/actions";
+import { Send } from "lucide-react";
 
 interface UrlInputFormProps {
   usage: { used: number; limit: number } | null;
@@ -27,8 +28,10 @@ export function UrlInputForm({ usage }: UrlInputFormProps) {
 
       <form action={formAction} className="mb-6">
         <div className="grid w-full items-start gap-4">
-          <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="url">Author URL</Label>
+          <Label htmlFor="url" className="sr-only">
+            Author URL
+          </Label>
+          <div className="inline-flex items-center gap-2">
             <Input
               id="url"
               name="url"
@@ -36,10 +39,10 @@ export function UrlInputForm({ usage }: UrlInputFormProps) {
               pattern="https?:\/\/[^\s]+"
               required
             />
+            <Button type="submit" disabled={isPending}>
+              <Send className="w-4 h-4" />
+            </Button>
           </div>
-          <Button type="submit" disabled={isPending}>
-            {isPending ? "Fetching..." : "Fetch Product Data"}
-          </Button>
         </div>
       </form>
 

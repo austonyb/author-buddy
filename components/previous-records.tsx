@@ -94,8 +94,10 @@ export function PreviousRecords({ downloads }: { downloads: Download[] }) {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="bottom">
           <SheetHeader>
-            <SheetTitle>Excel</SheetTitle>
-            <SheetDescription>
+            <SheetTitle className="text-xl md:text-2xl text-center mb-4">
+              Excel Spreadsheet Viewer
+            </SheetTitle>
+            <SheetDescription className="sr-only">
               Edit and download your excel file
             </SheetDescription>
           </SheetHeader>
