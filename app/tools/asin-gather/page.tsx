@@ -27,10 +27,18 @@ export default async function Page() {
   return (
     <div className="flex w-full overflow-hidden">
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="flex h-14 items-center gap-4 border-b px-6 bg-background sticky top-0 z-20 shadow-sm">
-          <h1 className="text-lg font-semibold">Gather all ASINs by Author</h1>
+        <header className="flex h-14 items-center gap-4px-6 bg-background sticky top-0 z-20">
+          <div className="flex flex-col items-center w-full">
+            <h1 className="text-lg md:text-3xl font-semibold text-center w-full">
+              Author Buddy
+            </h1>
+            <p className="text-sm md:text-base text-center w-full">
+              Gather all ASINs by Author
+            </p>
+          </div>
         </header>
-        <main className="flex-1 overflow-auto px-4 py-2">
+        <main className="flex-1 overflow-auto px-4 py-2 w-[700px]">
+          {/* TODO: fetch usage in this component and pass as prop */}
           <UrlInputForm usage={null} />
           <PreviousRecords downloads={downloads} />
         </main>

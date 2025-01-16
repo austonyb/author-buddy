@@ -49,6 +49,7 @@ export function UrlInputForm({ usage }: UrlInputFormProps) {
       const data = await response.json();
     } catch (error) {
       console.error("Error:", error);
+      setError("Error fetching product data");
     }
   };
 
@@ -75,6 +76,7 @@ export function UrlInputForm({ usage }: UrlInputFormProps) {
             <Input
               id="url"
               placeholder="https://www.amazon.com/stores/author/XXXXXXX/allbooks"
+              pattern="https?:\/\/[^\s]+"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               required

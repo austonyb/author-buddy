@@ -10,10 +10,8 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { ResultsDisplay } from "./asin-gather/results-display";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Download {
   id: number;
@@ -27,7 +25,7 @@ export function PreviousRecords({ downloads }: { downloads: Download[] }) {
     null
   );
   const [open, setOpen] = useState(false);
-  const recordsPerPage = 10;
+  const recordsPerPage = 5;
 
   const paginatedDownloads = downloads.slice(
     (currentPage - 1) * recordsPerPage,
@@ -97,19 +95,16 @@ export function PreviousRecords({ downloads }: { downloads: Download[] }) {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="bottom">
           <SheetHeader>
-            <SheetTitle>Are you absolutely sure?</SheetTitle>
+            <SheetTitle>Excel</SheetTitle>
             <SheetDescription>
-              This action cannot be undone. This will permanently delete your
-              account and remove your data from our servers.
+              Edit and download your excel file
             </SheetDescription>
           </SheetHeader>
-          <ScrollArea className="h-[500px]">
-            <ResultsDisplay
-              productData={selectedDownload?.data || []}
-              selectedType="all"
-              onTypeChange={() => {}}
-            />
-          </ScrollArea>
+          <ResultsDisplay
+            productData={selectedDownload?.data || []}
+            selectedType="all"
+            onTypeChange={() => {}}
+          />
         </SheetContent>
       </Sheet>
     </Card>
