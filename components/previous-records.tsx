@@ -24,6 +24,7 @@ export function PreviousRecords({ downloads }: { downloads: Download[] }) {
   const [selectedDownload, setSelectedDownload] = useState<Download | null>(
     null
   );
+  const [selectedType, setSelectedType] = useState("all");
   const [open, setOpen] = useState(false);
   const recordsPerPage = 5;
 
@@ -46,6 +47,7 @@ export function PreviousRecords({ downloads }: { downloads: Download[] }) {
             className={`p-4 cursor-pointer transition-colors hover:bg-muted`}
             onClick={() => {
               setSelectedDownload(download);
+              setSelectedType("all");
               setOpen(true);
             }}
           >
@@ -103,8 +105,8 @@ export function PreviousRecords({ downloads }: { downloads: Download[] }) {
           </SheetHeader>
           <ResultsDisplay
             productData={selectedDownload?.data || []}
-            selectedType="all"
-            onTypeChange={() => {}}
+            selectedType={selectedType}
+            onTypeChange={setSelectedType}
           />
         </SheetContent>
       </Sheet>
