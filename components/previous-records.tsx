@@ -52,18 +52,17 @@ export function PreviousRecords({ downloads }: { downloads: Download[] }) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">
-                  {download.data[0]?.author || "Unknown Author"} -{" "}
-                  {download.data.length} books
+                  {download.data[0]?.author || "Unknown Author"}
+                </span>
+                <span className="text-sm font-light">
+                  | {download.data.length} books
                 </span>
               </div>
-              <span>
+              <span className="text-xs text-muted-foreground">
                 {new Date(download.created_at).toLocaleString("en-US", {
                   month: "2-digit",
                   day: "2-digit",
                   year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  timeZoneName: "short",
                 })}
               </span>
             </div>
