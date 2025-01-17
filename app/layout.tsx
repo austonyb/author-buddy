@@ -42,6 +42,8 @@ export default function RootLayout({
                 <div className="w-full flex justify-between items-center p-3 px-5 text-sm">
                   <div className="flex gap-5 items-center font-semibold">
                     <Link href={"/"}>Author Buddy</Link>
+                    <Link href={"/tools/asin-gather"}>Tools</Link>
+                    <Link href={"/profile"}>Profile</Link>
                   </div>
                   <div className="flex gap-5 items-center">
                     {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}

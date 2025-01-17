@@ -20,3 +20,12 @@ interface ProductData {
     selectedType: string;
     isLoading: boolean;
   }
+
+  interface UserPlan {
+    usage_tracking: {
+      monthly_usage: number;
+    };
+    plans: {
+      max_usage: number;
+    };
+  }

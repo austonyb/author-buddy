@@ -80,12 +80,7 @@ export default async function Page() {
           </div>
         </header>
         <main className="flex-1 overflow-auto px-4 py-2 w-[700px]">
-          <div className="space-y-4 pb-10">
-            <UrlInputForm
-              usage={userPlan?.usage_tracking}
-              maxUsage={userPlan?.plans.max_usage || null}
-            />
-          </div>
+          <UrlInputForm />
           <PreviousRecords downloads={downloads} />
         </main>
       </div>
