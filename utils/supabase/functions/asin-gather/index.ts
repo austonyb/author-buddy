@@ -109,7 +109,7 @@ async function checkUserPlanAndUsage(supabaseClient: any, userId: string): Promi
       .from('user_plans')
       .select(`
         id,
-        total_usage,
+        usage_tracking,
         plan_id,
         plans!inner (
           id,
@@ -144,7 +144,8 @@ async function checkUserPlanAndUsage(supabaseClient: any, userId: string): Promi
     }
 
     const maxUsage = userPlan.plans?.max_usage;
-    const totalUsage = userPlan.total_usage || 0;
+    const usageTracking = userPlan.usage_tracking || { monthly_usage: 0 };
+    const totalUsage = usageTracking.monthly_usage || 0;
 
     console.log('Usage calculation:', {
       totalUsage,
@@ -185,10 +186,12 @@ async function checkUserPlanAndUsage(supabaseClient: any, userId: string): Promi
 
 async function recordUsage(supabaseClient: any, userId: string): Promise<{ error?: string }> {
   try {
+    console.log('Starting recordUsage for user:', userId);
+    
     // Get user's current plan ID
     const { data: userPlan, error: planError } = await supabaseClient
       .from('user_plans')
-      .select('id, total_usage')
+      .select('id')
       .eq('user_id', userId)
       .is('end_date', null)
       .single();
@@ -202,31 +205,19 @@ async function recordUsage(supabaseClient: any, userId: string): Promise<{ error
       return { error: 'No active plan found' };
     }
 
-    // Record usage in both tables
-    const { error: usageError } = await supabaseClient
-      .from('usage')
-      .insert({
-        user_plan_id: userPlan.id,
-        usage_amount: 1
+    console.log('Found user plan:', userPlan);
+
+    // Call the SQL function to update usage
+    const { data: usageData, error: usageError } = await supabaseClient
+      .rpc('update_user_plan_usage', {
+        user_plan_id: userPlan.id
       });
+
+    console.log('Update usage response:', { data: usageData, error: usageError });
 
     if (usageError) {
       console.error('Usage error in recordUsage:', usageError);
       return { error: 'Error recording usage' };
-    }
-
-    // Update total_usage and last_usage_date in user_plans
-    const { error: updateError } = await supabaseClient
-      .from('user_plans')
-      .update({ 
-        total_usage: (userPlan.total_usage || 0) + 1,
-        last_usage_date: new Date().toISOString()
-      })
-      .eq('id', userPlan.id);
-
-    if (updateError) {
-      console.error('Error updating user_plans:', updateError);
-      return { error: 'Error updating usage totals' };
     }
 
     return {};
