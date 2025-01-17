@@ -2,6 +2,24 @@ import { UrlInputForm } from "@/components/asin-gather/url-input-form";
 import { PreviousRecords } from "@/components/previous-records";
 import { createClient } from "@/utils/supabase/server";
 
+interface Plan {
+  id: number;
+  name: string;
+  description: string | null;
+  max_usage: number;
+}
+
+interface UserPlanWithPlan {
+  id: number;
+  user_id: string | null;
+  usage_tracking: {
+    monthly_usage: number;
+    last_reset: string;
+    last_usage: string | null;
+  } | null;
+  plans: Plan;
+}
+
 export default async function Page() {
   const supabase = await createClient();
 
@@ -11,6 +29,30 @@ export default async function Page() {
 
   if (!session) {
     console.error("No authenticated session found");
+    return;
+  }
+
+  // Fetch user's current plan and usage data
+  const { data: userPlan, error: userPlanError } = await supabase
+    .from("user_plans")
+    .select(`
+      id,
+      user_id,
+      usage_tracking,
+      plans (
+        id,
+        name,
+        description,
+        max_usage
+      )
+    `)
+    .eq("user_id", session.user.id)
+    .order("start_date", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (userPlanError) {
+    console.error("Error fetching user plan:", userPlanError);
     return;
   }
 
@@ -38,8 +80,12 @@ export default async function Page() {
           </div>
         </header>
         <main className="flex-1 overflow-auto px-4 py-2 w-[700px]">
-          {/* TODO: fetch usage in this component and pass as prop */}
-          <UrlInputForm usage={null} />
+          <div className="space-y-4 pb-10">
+            <UrlInputForm
+              usage={userPlan?.usage_tracking}
+              maxUsage={userPlan?.plans.max_usage || null}
+            />
+          </div>
           <PreviousRecords downloads={downloads} />
         </main>
       </div>

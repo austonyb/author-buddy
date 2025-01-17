@@ -5,27 +5,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 import { useActionState } from "react";
 import { fetchProductData } from "@/lib/actions";
 import { Send } from "lucide-react";
 
 interface UrlInputFormProps {
-  usage: { used: number; limit: number } | null;
+  usage: {
+    monthly_usage: number;
+    last_reset: string;
+    last_usage: string | null;
+  } | null;
+  maxUsage: number | null;
 }
 
-export function UrlInputForm({ usage }: UrlInputFormProps) {
+export function UrlInputForm({ usage, maxUsage }: UrlInputFormProps) {
   const [state, formAction, isPending] = useActionState(fetchProductData, null);
 
   return (
     <div>
-      <div className="flex justify-between items-start mb-4">
-        {usage && (
-          <div className="text-sm font-medium text-muted-foreground">
-            Usage: {usage.used} / {usage.limit} requests
-          </div>
-        )}
-      </div>
-
       <form action={formAction} className="mb-6">
         <div className="grid w-full items-start gap-4">
           <Label htmlFor="url" className="sr-only">
@@ -45,6 +43,18 @@ export function UrlInputForm({ usage }: UrlInputFormProps) {
           </div>
         </div>
       </form>
+
+      <div className="space-y-2 mb-4">
+        {usage && maxUsage && (
+          <>
+            <div className="text-sm font-medium text-muted-foreground flex justify-between">
+              <span>Usage this month</span>
+              <span>{usage.monthly_usage} / {maxUsage} requests</span>
+            </div>
+            <Progress value={(usage.monthly_usage / maxUsage) * 100} className="h-2" />
+          </>
+        )}
+      </div>
 
       {state?.error && (
         <Alert variant="destructive" className="mb-6">
