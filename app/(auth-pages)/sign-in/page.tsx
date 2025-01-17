@@ -43,16 +43,16 @@ export default async function Login(props: { searchParams: Promise<Message> }) {
           </Button>
         </form>
 
-        <div className="relative my-4">
+        {/* <div className="relative my-4">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-muted-foreground/25"></div>
           </div>
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-background px-2 text-muted-foreground">Or continue with email</span>
           </div>
-        </div>
+        </div> */}
 
-        <form className="flex flex-col gap-2 [&>input]:mb-3">
+        {/* <form className="flex flex-col gap-2 [&>input]:mb-3">
           <Label htmlFor="email">Email</Label>
           <Input name="email" placeholder="you@example.com" required />
           <div className="flex justify-between items-center">
@@ -74,7 +74,7 @@ export default async function Login(props: { searchParams: Promise<Message> }) {
             Sign in with Email
           </SubmitButton>
           <FormMessage message={searchParams} />
-        </form>
+        </form> */}
       </div>
     </div>
   );
