@@ -43,8 +43,8 @@ export async function getUserPlanInfo(): Promise<UserPlanInfo> {
 
   return {
     usage: userPlan?.usage_tracking || { monthly_usage: 0 },
-    maxUsage: userPlan?.plan?.max_usage || null,
-    plan: userPlan?.plan || null,
+    maxUsage: userPlan?.plan?.[0]?.max_usage || null,
+    plan: userPlan?.plan?.[0] || null,
     isAuthenticated: true
   }
 }
@@ -56,16 +56,16 @@ export async function checkUsageLimit(userId: string): Promise<boolean> {
     .from('user_plans')
     .select(`
       usage_tracking,
-      plans(max_usage)
+      plans:plans(max_usage)
     `)
     .eq('user_id', userId)
     .is('end_date', null)
     .single()
 
-  if (!userPlan) return false
+  if (!userPlan || !userPlan.plans?.[0]) return false
 
   const currentUsage = userPlan.usage_tracking.monthly_usage
-  const maxUsage = userPlan.plans.max_usage
+  const maxUsage = userPlan.plans[0].max_usage
 
   return currentUsage < maxUsage
 }
