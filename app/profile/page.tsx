@@ -1,8 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { PlanButton } from "@/components/profile/plan-button";
-import { UsageProgress } from "@/components/usage-progress";
-import { getUserPlanInfo } from "@/utils/user";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -12,7 +10,20 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  const { plan, usage, maxUsage } = await getUserPlanInfo();
+  // Fetch user's current plan
+  const { data: userPlan } = await supabase
+    .from('user_plans')
+    .select(`
+      *,
+      plan:plans(
+        name,
+        description,
+        max_usage
+      )
+    `)
+    .eq('user_id', user.id)
+    .is('end_date', null)
+    .single();
 
   // Fetch all available plans
   const { data: plans } = await supabase
@@ -38,16 +49,22 @@ export default async function ProfilePage() {
         <section className="mb-12 p-8 rounded-lg border bg-card border-border">
           <div className="flex flex-col gap-y-4">
             <h2 className="text-xl font-semibold text-foreground">Current Plan</h2>
-            {plan ? (
-              <>
-                <div className="text-lg text-foreground">{plan.name}</div>
-                <p className="text-muted-foreground">{plan.description}</p>
-                <UsageProgress
-                  currentUsage={usage.monthly_usage}
-                  maxUsage={maxUsage}
-                  label="Monthly Usage"
-                />
-              </>
+            {userPlan ? (
+              <div className="flex flex-col gap-y-2">
+                <div className="flex flex-row items-center gap-x-2">
+                  <span className="font-medium text-foreground">{userPlan.plan.name}</span>
+                  <button 
+                    disabled
+                    className="h-8 px-4 flex items-center justify-center rounded-full bg-muted text-muted-foreground text-sm font-medium cursor-not-allowed"
+                  >
+                    Subscribed
+                  </button>
+                </div>
+                <p className="text-sm text-muted-foreground">{userPlan.plan.description}</p>
+                <p className="text-sm text-muted-foreground">
+                  Up to {userPlan.plan.max_usage} lookups per month
+                </p>
+              </div>
             ) : (
               <div className="flex flex-col gap-y-2">
                 <p className="text-sm text-muted-foreground">No active plan</p>
@@ -70,7 +87,7 @@ export default async function ProfilePage() {
                     Up to {plan.max_usage} lookups per month
                   </p>
                   <div className="pt-4">
-                    {plan.id === plan.id ? (
+                    {userPlan?.plan_id === plan.id ? (
                       <button 
                         disabled
                         className="w-full h-10 flex items-center justify-center rounded-full bg-muted text-muted-foreground font-medium cursor-not-allowed"
