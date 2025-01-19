@@ -1,111 +1,152 @@
+import { Webhooks } from "@polar-sh/nextjs";
 import { createClient } from "@/utils/supabase/server";
-import {
-	validateEvent,
-	WebhookVerificationError,
-} from "@polar-sh/sdk/webhooks";
-import { type NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
-	const requestBody = await request.text();
-	const webhookHeaders = {
-		"webhook-id": request.headers.get("webhook-id") ?? "",
-		"webhook-timestamp": request.headers.get("webhook-timestamp") ?? "",
-		"webhook-signature": request.headers.get("webhook-signature") ?? "",
-	};
+export const POST = Webhooks({
+	webhookSecret: process.env.POLAR_WEBHOOK_SECRET!,
+	onPayload: async (payload) => {
+		const supabase = await createClient();
 
-	let webhookPayload: ReturnType<typeof validateEvent>;
-	try {
-		webhookPayload = validateEvent(
-			requestBody,
-			webhookHeaders,
-			process.env.POLAR_WEBHOOK_SECRET ?? "",
-		);
-	} catch (error) {
-		if (error instanceof WebhookVerificationError) {
-			return new NextResponse("", { status: 403 });
-		}
-		throw error;
-	}
+		switch (payload.type) {
+			case 'checkout.created': {
+				// Track the checkout in our database
+				const { data, error } = await supabase
+					.from('checkouts')
+					.insert({
+						id: payload.data.id,
+						status: payload.data.status,
+						user_id: payload.data.customerId,
+						product_id: payload.data.productId,
+						created_at: new Date(payload.data.createdAt).toISOString()
+					});
 
-	console.log("Incoming Webhook", webhookPayload.type);
-	const supabase = await createClient();
-
-	// Handle the event
-	switch (webhookPayload.type) {
-		case "subscription.created":
-		case "subscription.active": {
-			const subscription = JSON.parse(requestBody);
-			const userId = subscription.subscriber.id;
-			const planName = subscription.product.name;
-
-			// Get the plan ID from the plans table
-			const { data: planData } = await supabase
-				.from('plans')
-				.select('id')
-				.eq('name', planName)
-				.single();
-
-			if (!planData?.id) {
-				console.error('Plan not found:', planName);
-				return new NextResponse("Plan not found", { status: 400 });
+				if (error) {
+					console.error('Error inserting checkout:', error);
+				}
+				break;
 			}
 
-			// Update or insert user plan
-			const { data: existingPlan } = await supabase
-				.from('user_plans')
-				.select()
-				.eq('user_id', userId)
-				.is('end_date', null)
-				.single();
+			case 'checkout.updated': {
+				// Update the checkout status in our database
+				const { data, error } = await supabase
+					.from('checkouts')
+					.update({
+						status: payload.data.status,
+						updated_at: new Date().toISOString()
+					})
+					.eq('id', payload.data.id);
 
-			if (existingPlan) {
-				// Update existing plan
-				await supabase
+				if (error) {
+					console.error('Error updating checkout:', error);
+				}
+				break;
+			}
+
+			case 'subscription.created':
+			case 'subscription.active': {
+				// Get the plan ID from the plans table
+				const { data: planData } = await supabase
+					.from('plans')
+					.select('id')
+					.eq('name', payload.data.product.name)
+					.single();
+
+				if (!planData?.id) {
+					console.error('Plan not found:', payload.data.product.name);
+					return;
+				}
+
+				// Update or insert user plan
+				const { data: existingPlan } = await supabase
+					.from('user_plans')
+					.select()
+					.eq('user_id', payload.data.customerId)
+					.is('end_date', null)
+					.single();
+
+				if (existingPlan) {
+					// Update existing plan
+					const { error } = await supabase
+						.from('user_plans')
+						.update({
+							plan_id: planData.id,
+							start_date: new Date().toISOString(),
+							usage_tracking: {
+								monthly_usage: 0,
+								last_reset: new Date().toISOString(),
+								last_usage: null
+							},
+							// Clear any cancellation date if they're resubscribing
+							cancellation_date: null
+						})
+						.eq('id', existingPlan.id);
+
+					if (error) {
+						console.error('Error updating user plan:', error);
+					}
+				} else {
+					// Insert new plan
+					const { error } = await supabase
+						.from('user_plans')
+						.insert({
+							user_id: payload.data.customerId,
+							plan_id: planData.id,
+							start_date: new Date().toISOString(),
+							usage_tracking: {
+								monthly_usage: 0,
+								last_reset: new Date().toISOString(),
+								last_usage: null
+							}
+						});
+
+					if (error) {
+						console.error('Error inserting user plan:', error);
+					}
+				}
+				break;
+			}
+
+			case 'subscription.updated': {
+				// Handle subscription updates if needed
+				console.log('Subscription updated:', payload.data);
+				break;
+			}
+
+			case 'subscription.canceled': {
+				// Don't revoke access immediately
+				// Just mark that the subscription will be canceled
+				const { error } = await supabase
 					.from('user_plans')
 					.update({
-						plan_id: planData.id,
-						start_date: new Date().toISOString(),
-						total_usage: 0
+						cancellation_date: new Date().toISOString()
 					})
-					.eq('id', existingPlan.id);
-			} else {
-				// Insert new plan
-				await supabase
-					.from('user_plans')
-					.insert({
-						user_id: userId,
-						plan_id: planData.id,
-						start_date: new Date().toISOString(),
-						total_usage: 0
-					});
+					.eq('user_id', payload.data.customerId)
+					.is('end_date', null);
+
+				if (error) {
+					console.error('Error marking subscription as canceled:', error);
+				}
+				break;
 			}
-			break;
+
+			case 'subscription.revoked': {
+				// Now we actually end the subscription
+				const { error } = await supabase
+					.from('user_plans')
+					.update({
+						end_date: new Date().toISOString()
+					})
+					.eq('user_id', payload.data.customerId)
+					.is('end_date', null);
+
+				if (error) {
+					console.error('Error ending subscription:', error);
+				}
+				break;
+			}
+
+			default:
+				console.log('Unknown event', payload.type);
+				break;
 		}
-
-		case "subscription.updated": {
-			// Handle plan updates if needed
-			break;
-		}
-
-		case "subscription.canceled":
-		case "subscription.revoked": {
-			const subscription = JSON.parse(requestBody);
-			const userId = subscription.subscriber.id;
-
-			// Mark the current plan as ended
-			await supabase
-				.from('user_plans')
-				.update({
-					end_date: new Date().toISOString()
-				})
-				.eq('user_id', userId)
-				.is('end_date', null);
-			break;
-		}
-
-		default:
-			console.log(`Unhandled event type ${webhookPayload.type}`);
 	}
-
-	return new NextResponse("", { status: 200 });
-}
+});
