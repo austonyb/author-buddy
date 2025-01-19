@@ -6,6 +6,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@polar-sh/nextjs": "^0.3.8",
     "@polar-sh/sdk": "0.21.0",
     "@radix-ui/react-checkbox": "^1.1.1",
     "@radix-ui/react-collapsible": "^1.1.2",

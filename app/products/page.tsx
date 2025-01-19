@@ -22,6 +22,9 @@ export default async function ProductsPage({
   const supabase = await createClient();
   const products = await getProducts();
   
+  const { data: { session } } = await supabase.auth.getSession();
+  const userEmail = session?.user?.email;
+  
   const { data: currentSubscription } = await supabase
     .from('subscriptions')
     .select('plan_id')
@@ -42,6 +45,7 @@ export default async function ProductsPage({
             key={product.id}
             product={product}
             isCurrentPlan={currentSubscription?.plan_id === product.id}
+            userEmail={userEmail}
           />
         ))}
       </div>

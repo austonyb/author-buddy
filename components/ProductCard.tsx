@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import type { Product } from "@polar-sh/sdk/models/components";
+import { createClient } from "@/utils/supabase/client";
+import { useEffect, useState } from "react";
 
 interface PolarProductCardProps {
     product: Product
@@ -47,23 +49,18 @@ export const PolarProductCard = ({ product }: PolarProductCardProps) => {
 interface ProductCardProps {
     product: Product;
     isCurrentPlan?: boolean;
+    userEmail?: string | null;
 }
 
-export const ProductCard = ({ product, isCurrentPlan = false }: ProductCardProps) => {
+export function ProductCard({ product, isCurrentPlan = false, userEmail }: ProductCardProps) {
     const firstPrice = product.prices[0];
-
-    const price = useMemo(() => {
-        if (!firstPrice) return 'Contact us';
-        
-        switch(firstPrice.amountType) {
-            case 'fixed':
-                return `$${firstPrice.priceAmount / 100}/mo`;
-            case 'free':
-                return 'Free';
-            default:
-                return 'Pay what you want';
-        }
-    }, [firstPrice]);
+    const price = firstPrice ? (
+        firstPrice.amountType === 'fixed' 
+            ? `$${firstPrice.priceAmount / 100}/mo`
+            : firstPrice.amountType === 'free'
+                ? 'Free'
+                : 'Pay what you want'
+    ) : 'Contact us';
 
     return (
         <div className="flex flex-col gap-y-6 justify-between p-8 rounded-lg border bg-card border-border h-full">
@@ -89,7 +86,7 @@ export const ProductCard = ({ product, isCurrentPlan = false }: ProductCardProps
                 ) : (
                     <Link
                         className="h-10 px-6 flex items-center justify-center rounded-full bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
-                        href={`/checkout?productId=${product.id}`}
+                        href={`/checkout?productId=${product.id}${userEmail ? `&email=${userEmail}` : ''}`}
                     >
                         Subscribe
                     </Link>
@@ -98,4 +95,4 @@ export const ProductCard = ({ product, isCurrentPlan = false }: ProductCardProps
             </div>
         </div>
     );
-};
+}
