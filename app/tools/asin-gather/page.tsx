@@ -23,14 +23,8 @@ interface UserPlanWithPlan {
 export default async function Page() {
   const supabase = await createClient();
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    console.error("No authenticated session found");
-    return;
-  }
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null;
 
   // Fetch user's current plan and usage data
   const { data: userPlan, error: userPlanError } = await supabase
@@ -46,7 +40,7 @@ export default async function Page() {
         max_usage
       )
     `)
-    .eq("user_id", session.user.id)
+    .eq("user_id", user.id)
     .order("start_date", { ascending: false })
     .limit(1)
     .single();

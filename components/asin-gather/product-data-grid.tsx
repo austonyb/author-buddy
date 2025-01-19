@@ -10,7 +10,6 @@ interface ProductDataGridProps {
 
 export function ProductDataGrid({ data }: ProductDataGridProps) {
   const { resolvedTheme } = useTheme();
-  console.log("Resolved theme:", resolvedTheme);
   const spreadsheetData = data.map((product) => [
     { value: product.asin },
     { value: product.author },
