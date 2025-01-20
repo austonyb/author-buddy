@@ -2,24 +2,6 @@ import { UrlInputForm } from "@/components/asin-gather/url-input-form";
 import { PreviousRecords } from "@/components/previous-records";
 import { createClient } from "@/utils/supabase/server";
 
-interface Plan {
-  id: number;
-  name: string;
-  description: string | null;
-  max_usage: number;
-}
-
-interface UserPlanWithPlan {
-  id: number;
-  user_id: string | null;
-  usage_tracking: {
-    monthly_usage: number;
-    last_reset: string;
-    last_usage: string | null;
-  } | null;
-  plans: Plan;
-}
-
 export default async function Page() {
   const supabase = await createClient();
 
@@ -27,7 +9,7 @@ export default async function Page() {
   if (!user) return null;
 
   // Fetch user's current plan and usage data
-  const { data: userPlan, error: userPlanError } = await supabase
+  const { error: userPlanError } = await supabase
     .from("user_plans")
     .select(`
       id,

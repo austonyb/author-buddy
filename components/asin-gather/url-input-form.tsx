@@ -6,19 +6,10 @@ import { Label } from "@/components/ui/label";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Send } from "lucide-react";
-import { UsageProgress } from "@/components/usage-progress";
-import { UserPlanInfo } from "@/utils/user";
 import { useActionState } from "react";
 import { fetchProductData } from "@/lib/actions";
 
-interface UrlInputFormProps {
-  usage: UserPlanInfo['usage']
-  maxUsage: UserPlanInfo['maxUsage']
-}
-
-export function UrlInputForm(
-  // { usage, maxUsage }: UrlInputFormProps
-) {
+export function UrlInputForm() {
   const [state, formAction, isPending] = useActionState(fetchProductData, null);
 
   return (

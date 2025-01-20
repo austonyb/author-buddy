@@ -1,8 +1,6 @@
 import type { Product } from "@polar-sh/sdk/models/components";
-import Link from "next/link";
 import { polar } from "@/polar";
 import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
 import { ProductCard } from "@/components/ProductCard";
 
 async function getProducts(): Promise<Product[]> {

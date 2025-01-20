@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card"
 import { toast } from "sonner"
 import { createClient } from '@/utils/supabase/client'
 import { UrlInputForm } from './asin-gather/url-input-form'
@@ -20,7 +20,7 @@ interface UrlToCsvConverterProps {
 export default function UrlToCsvConverter({ onResultsChange, resultsState, onSubmitSuccess }: UrlToCsvConverterProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null)
+  const [usage] = useState<{ used: number; limit: number } | null>(null)
 
   const handleSubmit = async (url: string) => {
     setIsLoading(true)
@@ -85,7 +85,7 @@ export default function UrlToCsvConverter({ onResultsChange, resultsState, onSub
     <Card>
       <CardHeader>
         <CardDescription className='font-semibold'>
-          Enter an author's Amazon page URL to get their books as product data
+          Enter an author&apos;s Amazon page URL to get their books as product data
         </CardDescription>
       </CardHeader>
       <CardContent>

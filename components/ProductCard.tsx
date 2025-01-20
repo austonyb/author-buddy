@@ -1,14 +1,8 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import type { Product } from "@polar-sh/sdk/models/components";
-import { createClient } from "@/utils/supabase/client";
-import { useEffect, useState } from "react";
 
-interface PolarProductCardProps {
-    product: Product
-}
-
-export const PolarProductCard = ({ product }: PolarProductCardProps) => {
+export const PolarProductCard = ({ product }: { product: Product }) => {
     // Handling just a single price for now
     // Remember to handle multiple prices for products if you support monthly & yearly pricing plans
     const firstPrice = product.prices[0]

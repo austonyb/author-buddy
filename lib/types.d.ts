@@ -1,8 +1,28 @@
+/* eslint-disable */
+
 type ScrapeRecord = {
     id: string;
     url: string;
     createdAt: Date;
   };
+
+  interface UserPlanWithPlan {
+  id: number;
+  user_id: string | null;
+  usage_tracking: {
+    monthly_usage: number;
+    last_reset: string;
+    last_usage: string | null;
+  } | null;
+  plans: Plan;
+}
+
+interface Plan {
+  id: number;
+  name: string;
+  description: string | null;
+  max_usage: number;
+}
 
 interface ProductData {
     asin: string;
@@ -13,6 +33,15 @@ interface ProductData {
     url: string;
     price: number | string;
   }
+
+  interface PolarProductCardProps {
+    product: Product
+}
+
+interface UrlInputFormProps {
+  usage: UserPlanInfo['usage']
+  maxUsage: UserPlanInfo['maxUsage']
+}
 
 interface SharedResultsState {
     isOpen: boolean;
@@ -57,11 +86,13 @@ interface PolarWebhookPayload {
       metadata: {
         customer_id?: string;
       };
+      // eslint-disable-next-line @typescript-eslint/ban-types
       custom_field_data: {};
       customer: {
         created_at: string | null;
         modified_at: string | null;
         id: string;
+        // eslint-disable-next-line @typescript-eslint/ban-types
         "metadata": {};
         "email": string;
         "email_verified": boolean;
@@ -95,6 +126,7 @@ interface PolarWebhookPayload {
         "is_recurring": true;
         "is_archived": false;
         "organization_id": string;
+        // eslint-disable-next-line @typescript-eslint/ban-types
         "metadata": {};
         "prices": [
           {

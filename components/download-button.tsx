@@ -14,10 +14,9 @@ export interface DownloadButtonProps {
     url: string;
     price: number | string;
   }>;
-  filename?: string;
 }
 
-export function DownloadButton({ data, filename = 'product-data.xlsx' }: DownloadButtonProps) {
+export function DownloadButton({ data }: DownloadButtonProps) {
   const handleDownload = () => {
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();

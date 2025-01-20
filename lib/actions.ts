@@ -3,6 +3,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function fetchProductData(prevState: any, formData: FormData) {
   try {
     const supabase = await createClient();
@@ -35,6 +36,7 @@ export async function fetchProductData(prevState: any, formData: FormData) {
     const data = await response.json();
     revalidatePath("/tools/asin-gather");
     return { data };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     return { error: "Error fetching product data" };
   }
