@@ -14,14 +14,14 @@ interface ProductData {
     price: number | string;
   }
 
-  interface SharedResultsState {
+interface SharedResultsState {
     isOpen: boolean;
     productData: ProductData[];
     selectedType: string;
     isLoading: boolean;
   }
 
-  interface UserPlan {
+interface UserPlan {
     usage_tracking: {
       monthly_usage: number;
     };
@@ -29,3 +29,132 @@ interface ProductData {
       max_usage: number;
     };
   }
+
+interface PolarWebhookPayload {
+    type: string;
+    data: {
+      created_at: string | null;
+      modified_at: string | null;
+      id: string | null;
+      amount: number;
+      currency: string;
+      recurring_interval: string;
+      status: string;
+      current_period_start: string;
+      current_period_end: string;
+      cancel_at_period_end: boolean;
+      canceled_at: string | null;
+      started_at: string;
+      ends_at: string | null;
+      ended_at: string | null;
+      customer_id: string;
+      product_id: string;
+      price_id: string;
+      discount_id: string | null;
+      checkout_id: string;
+      customer_cancellation_reason: string | null;
+      customer_cancellation_comment: string | null;
+      metadata: {
+        customer_id?: string;
+      };
+      custom_field_data: {};
+      customer: {
+        created_at: string | null;
+        modified_at: string | null;
+        id: string;
+        "metadata": {};
+        "email": string;
+        "email_verified": boolean;
+        "name": string;
+        "billing_address": {
+          "line1": string;
+          "line2": string | null;
+          "postal_code": string;
+          "city": string;
+          "state": string;
+          "country": string
+        };
+        "tax_id": string | null;
+        "organization_id": string | null;
+        "avatar_url": string | null;
+      };
+      "user_id": string | null;
+      "user": {
+        "id": string | null;
+        "email": string | null;
+        "public_name": string | null;
+        "avatar_url": string | null;
+        "github_username": string | null
+      },
+      "product": {
+        "created_at": string;
+        "modified_at": string;
+        "id": string;
+        "name": string;
+        "description": null;
+        "is_recurring": true;
+        "is_archived": false;
+        "organization_id": string;
+        "metadata": {};
+        "prices": [
+          {
+            "created_at": string;
+            "modified_at": null,
+            "id": string;
+            "amount_type": string;
+            "is_archived": false,
+            "product_id": string;
+            "price_currency": string;
+            "price_amount": number;
+            "type": string;
+            "recurring_interval": string
+          }
+        ],
+        "benefits": [],
+        "medias": [],
+        "attached_custom_fields": []
+      },
+      "price": {
+        "created_at": string;
+        "modified_at": null;
+        "id": string;
+        "amount_type": string;
+        "is_archived": false;
+        "product_id": string;
+        "price_currency": string;
+        "price_amount": number;
+        "type": string;
+        "recurring_interval": string
+      },
+      "discount": null
+    }
+  }
+
+interface CheckoutConfig {
+  accessToken: string;
+  successUrl: string;
+  server?: "sandbox" | "production";
+  metadata?: Record<string, any>;
+}
+
+interface ExtendedCheckoutConfig extends CheckoutConfig {
+  accessToken: string;
+  successUrl: string;
+  server?: "sandbox" | "production";
+  metadata?: {
+    customer_id: string;
+  };
+}
+
+// Extend Polar webhook types
+import type { Benefit, BenefitGrantWebhook, Checkout, Order, Organization, Pledge, Product, Subscription } from '@polar-sh/nextjs';
+
+declare module '@polar-sh/nextjs' {
+  interface WebhookTypes {
+    data: {
+      metadata?: {
+        customer_id?: string;
+      };
+    } & (Benefit | BenefitGrantWebhook | Checkout | Order | Organization | Pledge | Product | Subscription)['data'];
+  }
+}
