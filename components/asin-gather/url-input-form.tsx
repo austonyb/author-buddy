@@ -32,24 +32,15 @@ export function UrlInputForm() {
             </Button>
           </div>
         </div>
-      </form>
 
-      {/* <div className="mb-4">
-        {usage && maxUsage && (
-          <UsageProgress
-            currentUsage={usage.monthly_usage}
-            maxUsage={maxUsage}
-          />
+        {state?.error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{state.error}</AlertDescription>
+          </Alert>
         )}
-      </div> */}
-
-      {state?.error && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{state.error}</AlertDescription>
-        </Alert>
-      )}
+      </form>
     </div>
   );
 }

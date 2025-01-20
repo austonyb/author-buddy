@@ -178,6 +178,13 @@ interface ExtendedCheckoutConfig extends CheckoutConfig {
   };
 }
 
+interface UrlInputFormProps {
+  onSubmit: (url: string) => Promise<void>;
+  isLoading: boolean;
+  error: string | null;
+  usage: { used: number; limit: number } | null;
+}
+
 // Extend Polar webhook types
 import type { Benefit, BenefitGrantWebhook, Checkout, Order, Organization, Pledge, Product, Subscription } from '@polar-sh/nextjs';
 

@@ -4,6 +4,7 @@ import { ProductTypeFilter } from "./product-type-filter";
 import { ProductDataGrid } from "./product-data-grid";
 import { DownloadButton } from "../download-button";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { ProductData } from "@/lib/types";
 
 interface ResultsDisplayProps {
   productData: ProductData[];

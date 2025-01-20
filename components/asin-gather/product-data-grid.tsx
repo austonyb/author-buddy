@@ -3,6 +3,7 @@
 import Spreadsheet from "react-spreadsheet";
 import { useTheme } from "next-themes";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import type { ProductData } from "../../lib/types";
 
 interface ProductDataGridProps {
   data: ProductData[];

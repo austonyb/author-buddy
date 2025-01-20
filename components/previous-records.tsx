@@ -12,6 +12,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { ResultsDisplay } from "./asin-gather/results-display";
+import type { ProductData } from "@/lib/types";
 
 interface Download {
   id: number;

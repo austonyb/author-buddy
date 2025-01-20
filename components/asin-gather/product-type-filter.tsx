@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Filter } from "lucide-react";
+import type { ProductData } from "../../lib/types";
 
 interface ProductTypeFilterProps {
   productData: ProductData[];
