@@ -1,10 +1,5 @@
 import { Suspense } from 'react';
 
-type Props = {
-    params: Record<string, string>;
-    searchParams: Record<string, string | string[] | undefined>;
-};
-
 function ConfirmationContent({ checkoutId, sessionToken }: { checkoutId: string, sessionToken: string }) {
     console.log('Checkout confirmation:', { checkoutId, sessionToken });
     
@@ -20,10 +15,13 @@ function ConfirmationContent({ checkoutId, sessionToken }: { checkoutId: string,
     );
 }
 
-export default async function Page({ params, searchParams }: Props) {
+export default async function Page({
+    searchParams,
+}: {
+    searchParams: { [key: string]: string | string[] | undefined }
+}) {
     // Await searchParams to satisfy Next.js requirements
     //eslint-disable-next-line
-    const paramsResolved = await Promise.resolve(params);
     const searchParamsResolved = await Promise.resolve(searchParams);
     const checkoutId = searchParamsResolved?.checkoutId as string;
     const customer_session_token = searchParamsResolved?.customer_session_token as string;
