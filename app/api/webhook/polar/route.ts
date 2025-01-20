@@ -130,7 +130,10 @@ async function updateUserPlan(
 
 export const POST = Webhooks({
 	webhookSecret: process.env.POLAR_WEBHOOK_SECRET!,
-	onPayload: async (payload: any) => {
+	onPayload: async (
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		payload: any
+	) => {
 		const supabase = createServiceRoleClient();
 		const metadata = payload.data.metadata || {};
 		console.log(`[${payload.type}] Processing webhook event:`, {
@@ -145,7 +148,7 @@ export const POST = Webhooks({
 				console.log(`[${payload.type}] Order created:`, payload.data);
 				
 				// Try to find user by metadata email first, then fall back to customer email
-				let user = metadata.email ? 
+				const user = metadata.email ? 
 					await findUserByEmailV2(supabase, metadata.email, payload.type) :
 					await findUserByEmailV2(supabase, payload.data.customer?.email, payload.type);
 
@@ -171,7 +174,7 @@ export const POST = Webhooks({
 			case 'subscription.active':
 			case 'subscription.updated': {
 				// Try to find user by metadata email first
-				let user = metadata.email ? 
+				const user = metadata.email ? 
 					await findUserByEmailV2(supabase, metadata.email, payload.type) :
 					await findUserByEmailV2(supabase, payload.data.customer?.email, payload.type);
 
@@ -194,7 +197,7 @@ export const POST = Webhooks({
 
 			case 'subscription.canceled': {
 				// Try metadata email first
-				let user = metadata.email ? 
+				const user = metadata.email ? 
 					await findUserByEmailV2(supabase, metadata.email, payload.type) :
 					await findUserByEmailV2(supabase, payload.data.customer?.email, payload.type);
 
@@ -222,7 +225,7 @@ export const POST = Webhooks({
 
 			case 'subscription.revoked': {
 				// Try metadata email first
-				let user = metadata.email ? 
+				const user = metadata.email ? 
 					await findUserByEmailV2(supabase, metadata.email, payload.type) :
 					await findUserByEmailV2(supabase, payload.data.customer?.email, payload.type);
 
@@ -248,7 +251,7 @@ export const POST = Webhooks({
 
 			case 'checkout.updated': {
 				// Update the checkout status in our database
-				const { data, error } = await supabase
+				const { error } = await supabase
 					.from('checkouts')
 					.update({
 						status: payload.data.status,

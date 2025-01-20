@@ -32,5 +32,6 @@ export const GET = (request: NextRequest) => {
 		},
 	};
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	return Checkout(config as any)(request);
 };

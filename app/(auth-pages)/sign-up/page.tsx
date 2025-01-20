@@ -1,11 +1,7 @@
-import { signUpAction, signInWithGoogleAction } from "@/app/actions";
+import { signInWithGoogleAction } from "@/app/actions";
 import { FormMessage, Message } from "@/components/form-message";
-import { SubmitButton } from "@/components/submit-button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { SmtpMessage } from "../smtp-message";
 
 export default async function Signup(props: {
   searchParams: Promise<Message>;
@@ -54,35 +50,8 @@ export default async function Signup(props: {
               Continue with Google
             </Button>
           </form>
-
-          {/* <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-muted-foreground/25"></div>
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or continue with email</span>
-            </div>
-          </div>
-
-          <form className="flex flex-col gap-2 [&>input]:mb-3">
-            <Label htmlFor="email">Email</Label>
-            <Input name="email" placeholder="you@example.com" required />
-            <Label htmlFor="password">Password</Label>
-            <Input
-              type="password"
-              name="password"
-              placeholder="Your password"
-              minLength={6}
-              required
-            />
-            <SubmitButton formAction={signUpAction} pendingText="Signing up...">
-              Sign up with Email
-            </SubmitButton>
-            <FormMessage message={searchParams} />
-          </form> */}
         </div>
       </div>
-      {/* <SmtpMessage /> */}
     </>
   );
 }

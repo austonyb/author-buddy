@@ -1,4 +1,3 @@
-import type { ReadonlyURLSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
 type Props = {
@@ -6,6 +5,8 @@ type Props = {
 };
 
 function ConfirmationContent({ checkoutId, sessionToken }: { checkoutId: string, sessionToken: string }) {
+    console.log('Checkout confirmation:', { checkoutId, sessionToken });
+    
     return (
         <div className="container max-w-6xl py-8 space-y-8">
             <div className="space-y-4">
