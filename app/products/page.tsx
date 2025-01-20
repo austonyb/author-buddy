@@ -15,8 +15,9 @@ async function getProducts(): Promise<Product[]> {
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: { plan?: string };
+  searchParams: Promise<{ plan?: string }>;
 }) {
+  const resolvedSearchParams = await searchParams;
   const supabase = await createClient();
   const products = await getProducts();
   
@@ -29,7 +30,7 @@ export default async function ProductsPage({
     .single();
 
   // Get current plan ID from URL param
-  const currentPlanId = searchParams.plan;
+  const currentPlanId = resolvedSearchParams.plan;
 
   return (
     <div className="container max-w-6xl py-8 space-y-8">
