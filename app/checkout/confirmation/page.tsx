@@ -1,8 +1,8 @@
 import { Suspense } from 'react';
 
 type Props = {
-    params: { [key: string]: string | string[] | undefined };
-    searchParams: { [key: string]: string | string[] | undefined };
+    params: Record<string, string>;
+    searchParams: Record<string, string | string[] | undefined>;
 };
 
 function ConfirmationContent({ checkoutId, sessionToken }: { checkoutId: string, sessionToken: string }) {
