@@ -1,7 +1,7 @@
 import { EnvVarWarning } from "@/components/env-var-warning";
 import HeaderAuth from "@/components/header-auth";
 import { ThemeSwitcher } from "@/components/theme-switcher";
-import { hasEnvVars } from "@/utils/supabase/check-env-vars";
+import { createClient } from "@/utils/supabase/server";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
@@ -22,11 +22,15 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
+  const hasEnvVars = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   return (
     <html lang="en" className={geistSans.className} suppressHydrationWarning>
       <body className="bg-background text-foreground">
@@ -42,8 +46,12 @@ export default function RootLayout({
                 <div className="w-full flex justify-between items-center p-3 px-5 text-sm">
                   <div className="flex gap-5 items-center font-semibold">
                     <Link href={"/"}>Author Buddy</Link>
-                    <Link href={"/tools/asin-gather"}>Tools</Link>
-                    <Link href={"/profile"}>Profile</Link>
+                    {user && (
+                      <>
+                        <Link href={"/tools/asin-gather"}>Tools</Link>
+                        <Link href={"/profile"}>Account and Usage</Link>
+                      </>
+                    )}
                   </div>
                   <div className="flex gap-5 items-center">
                     {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}

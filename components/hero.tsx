@@ -1,44 +1,57 @@
-import NextLogo from "./next-logo";
-import SupabaseLogo from "./supabase-logo";
+// React and Next.js imports
+import Link from "next/link";
+import Image from "next/image";
 
-export default function Header() {
+// Third-party library imports
+import Balancer from "react-wrap-balancer";
+
+// Local component imports
+import { Section, Container } from "@/components/craft";
+
+// Asset imports
+import Logo from "@/public/Logo.jpg";
+
+const Hero = () => {
   return (
-    <div className="flex flex-col gap-16 items-center">
-      <div className="flex gap-8 justify-center items-center">
-        <a
-          href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-          target="_blank"
-          rel="noreferrer"
+    <Section>
+      <Container className="flex flex-col items-center text-center">
+        <Image
+          src={Logo}
+          width={172}
+          height={72}
+          alt="Company Logo"
+          className="not-prose mb-6 dark:invert md:mb-8 rounded-[10px]"
+        />
+        <h1 className="!mb-0">
+          <Balancer>
+            Welcome to{" "}
+            <span className="font-bold text-blue-400">AuthorBuddy</span>,
+            welcome to saving time.
+          </Balancer>
+        </h1>
+        <h3 className="text-muted-foreground">
+          <Balancer>
+            Your one stop shop for scraping and analyzing data for marketing
+            your books.
+          </Balancer>
+        </h3>
+        <Link
+          href="https://youtu.be/i6wBy_oxgnM"
+          className="mt-4 text-md font-medium hover:text-gray-500 underline decoration-2 underline-offset-4"
         >
-          <SupabaseLogo />
-        </a>
-        <span className="border-l rotate-45 h-6" />
-        <a href="https://nextjs.org/" target="_blank" rel="noreferrer">
-          <NextLogo />
-        </a>
-      </div>
-      <h1 className="sr-only">Supabase and Next.js Starter Template</h1>
-      <p className="text-3xl lg:text-4xl !leading-tight mx-auto max-w-xl text-center">
-        The fastest way to build apps with{" "}
-        <a
-          href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-          target="_blank"
-          className="font-bold hover:underline"
-          rel="noreferrer"
-        >
-          Supabase
-        </a>{" "}
-        and{" "}
-        <a
-          href="https://nextjs.org/"
-          target="_blank"
-          className="font-bold hover:underline"
-          rel="noreferrer"
-        >
-          Next.js
-        </a>
-      </p>
-      <div className="w-full p-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent my-8" />
-    </div>
+          Watch a tutorial →
+        </Link>
+        <div className="not-prose mt-6 flex gap-2 md:mt-12">
+          <Link 
+            href="/sign-in" 
+            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+          >
+            Get Started →
+          </Link>
+        </div>
+      </Container>
+    </Section>
   );
-}
+};
+
+export default Hero;
