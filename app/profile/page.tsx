@@ -6,12 +6,13 @@ export default async function ProfilePage() {
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (error || !user) {
+    console.error("Authentication error:", error);
     redirect("/login");
   }
 
   // Fetch user's current plan
-  const { data: userPlan } = await supabase
+  const { data: userPlan, error: planError } = await supabase
     .from('user_plans')
     .select(`
       *,
@@ -25,11 +26,19 @@ export default async function ProfilePage() {
     .is('end_date', null)
     .single();
 
+  if (planError && planError.code !== 'PGRST116') { // PGRST116 is "not found"
+    console.error("Error fetching user plan:", planError);
+  }
+
   // Fetch all available plans
-  const { data: plans } = await supabase
+  const { data: plans, error: plansError } = await supabase
     .from('plans')
     .select('*')
     .order('max_usage', { ascending: true });
+
+  if (plansError) {
+    console.error("Error fetching plans:", plansError);
+  }
   
   return (
     <div className="container mx-auto px-4 py-8">

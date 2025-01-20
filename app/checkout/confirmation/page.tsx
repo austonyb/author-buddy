@@ -1,23 +1,11 @@
 import type { ReadonlyURLSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
 type Props = {
-    searchParams: {
-        checkoutId?: string;
-        customer_session_token?: string;
-    };
+    searchParams?: { [key: string]: string | string[] | undefined };
 };
 
-export default async function Page({ searchParams }: Props) {
-    const checkoutId = searchParams?.checkoutId;
-    const customer_session_token = searchParams?.customer_session_token;
-
-    if (!checkoutId || !customer_session_token) {
-        return <div>Missing required parameters</div>;
-    }
-
-    // Checkout has been confirmed
-    // Now, make sure to capture the Checkout.updated webhook event to update the order status in your system
-
+function ConfirmationContent({ checkoutId, sessionToken }: { checkoutId: string, sessionToken: string }) {
     return (
         <div className="container max-w-6xl py-8 space-y-8">
             <div className="space-y-4">
@@ -27,5 +15,28 @@ export default async function Page({ searchParams }: Props) {
                 </p>
             </div>
         </div>
+    );
+}
+
+export default async function Page({ searchParams }: Props) {
+    // Await searchParams to satisfy Next.js requirements
+    const params = await Promise.resolve(searchParams);
+    const checkoutId = params?.checkoutId as string;
+    const customer_session_token = params?.customer_session_token as string;
+
+    if (!checkoutId || !customer_session_token) {
+        return <div>Missing required parameters</div>;
+    }
+
+    // Checkout has been confirmed
+    // Now, make sure to capture the Checkout.updated webhook event to update the order status in your system
+
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ConfirmationContent 
+                checkoutId={checkoutId} 
+                sessionToken={customer_session_token}
+            />
+        </Suspense>
     );
 }

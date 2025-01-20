@@ -1,24 +1,36 @@
 import { Checkout } from "@polar-sh/nextjs";
-import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
-import { ExtendedCheckoutConfig } from "@/lib/types";
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export const GET = async () => {
-	const supabase = await createClient();
-
-	const { data: { session } } = await supabase.auth.getSession();
+export const GET = (request: NextRequest) => {
+	const { searchParams } = new URL(request.url);
+	const productId = searchParams.get('productId');
+	const email = searchParams.get('email');
 	
-	if (!session?.user) {
-		// Redirect to login if no session
-		redirect('/login');
+	if (!email) {
+		return NextResponse.json(
+			{ error: 'Email is required' },
+			{ status: 400 }
+		);
 	}
 
-	return Checkout({
+	if (!productId) {
+		return NextResponse.json(
+			{ error: 'Product ID is required' },
+			{ status: 400 }
+		);
+	}
+
+	const config = {
 		accessToken: process.env.POLAR_ACCESS_TOKEN!,
-		successUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout/confirmation`,
-		server: "sandbox", // Use this option if you're using the sandbox environment - else use 'production' or omit the parameter
+		successUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout/confirmation?checkoutId={CHECKOUT_ID}&customer_session_token={CUSTOMER_SESSION_TOKEN}`,
+		server: "sandbox",
 		metadata: {
-			customer_id: session.user.id,
+			customer_id: email,
+			product_id: productId,
+			email: email,
 		},
-	} as ExtendedCheckoutConfig);
+	};
+
+	return Checkout(config as any)(request);
 };
