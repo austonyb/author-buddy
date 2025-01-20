@@ -24,7 +24,7 @@ export const GET = (request: NextRequest) => {
 	const config = {
 		accessToken: process.env.POLAR_ACCESS_TOKEN!,
 		successUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout/confirmation?checkoutId={CHECKOUT_ID}&customer_session_token={CUSTOMER_SESSION_TOKEN}`,
-		server: "sandbox",
+		// server: "sandbox",
 		metadata: {
 			customer_id: email,
 			product_id: productId,
