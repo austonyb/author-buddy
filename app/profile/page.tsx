@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { PlanButton } from "@/components/profile/plan-button";
+import { Progress } from "@/components/ui/progress";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -29,6 +30,18 @@ export default async function ProfilePage() {
   if (planError && planError.code !== 'PGRST116') { // PGRST116 is "not found"
     console.error("Error fetching user plan:", planError);
   }
+
+  const currentUsage = userPlan?.usage_tracking?.monthly_usage || 0;
+  
+  // Calculate next reset date from last_reset
+  const lastReset = userPlan?.usage_tracking?.last_reset ? new Date(userPlan.usage_tracking.last_reset) : new Date();
+  const nextReset = new Date(lastReset);
+  nextReset.setMonth(nextReset.getMonth() + 1);
+  
+  // Format the date to show month and day
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+  };
 
   // Fetch all available plans
   const { data: plans, error: plansError } = await supabase
@@ -69,10 +82,20 @@ export default async function ProfilePage() {
                     Subscribed
                   </button>
                 </div>
-                <p className="text-sm text-muted-foreground">{userPlan.plan.description}</p>
                 <p className="text-sm text-muted-foreground">
                   Up to {userPlan.plan.max_usage} lookups per month
                 </p>
+                <div className="mt-4">
+                  <Progress value={(currentUsage / userPlan.plan.max_usage) * 100} className="h-2" />
+                  <div className="flex justify-between items-center mt-2">
+                    <p className="text-sm text-muted-foreground">
+                      {currentUsage} / {userPlan.plan.max_usage} lookups used this month
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Resets {formatDate(nextReset)}
+                    </p>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="flex flex-col gap-y-2">
