@@ -18,11 +18,11 @@ function ConfirmationContent({ checkoutId, sessionToken }: { checkoutId: string,
 export default async function Page({
     searchParams,
 }: {
-    searchParams: { [key: string]: string | string[] | undefined }
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
     // Await searchParams to satisfy Next.js requirements
     //eslint-disable-next-line
-    const searchParamsResolved = await Promise.resolve(searchParams);
+    const searchParamsResolved = await searchParams;
     const checkoutId = searchParamsResolved?.checkoutId as string;
     const customer_session_token = searchParamsResolved?.customer_session_token as string;
 
