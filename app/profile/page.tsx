@@ -106,7 +106,10 @@ export default async function ProfilePage() {
                     ) : (
                       <PlanButton 
                         planId={plan.id} 
-                        label="Select Plan" 
+                        label="Select Plan"
+                        currentPlanId={userPlan?.plan?.id}
+                        maxUsage={plan.max_usage}
+                        currentPlanMaxUsage={userPlan?.plan?.max_usage}
                         className="w-full h-10"
                       />
                     )}

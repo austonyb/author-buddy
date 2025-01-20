@@ -50,9 +50,10 @@ interface ProductCardProps {
     product: Product;
     isCurrentPlan?: boolean;
     userEmail?: string | null;
+    currentPlanId?: string;
 }
 
-export function ProductCard({ product, isCurrentPlan = false, userEmail }: ProductCardProps) {
+export function ProductCard({ product, isCurrentPlan = false, userEmail, currentPlanId }: ProductCardProps) {
     const firstPrice = product.prices[0];
     const price = firstPrice ? (
         firstPrice.amountType === 'fixed' 
@@ -61,6 +62,36 @@ export function ProductCard({ product, isCurrentPlan = false, userEmail }: Produ
                 ? 'Free'
                 : 'Pay what you want'
     ) : 'Contact us';
+
+    // Determine if this card is for max or lite plan
+    const isMaxPlan = product.name.toLowerCase().includes('max');
+    const isLitePlan = product.name.toLowerCase().includes('lite');
+
+    const getActionText = () => {
+        // If this is their current subscription, show Current Plan
+        if (isCurrentPlan) return 'Current Plan';
+        
+        // If they have no current plan (not coming from profile page)
+        if (!currentPlanId) return 'Subscribe';
+
+        // If they're viewing from their current plan's page
+        if (currentPlanId === product.id) return 'Current Plan';
+
+        // If this is the max plan card
+        if (isMaxPlan) {
+            // If user is viewing from lite plan, show Upgrade
+            return currentPlanId === '1' ? 'Upgrade' : 'Subscribe';
+        }
+
+        // If this is the lite plan card
+        if (isLitePlan) {
+            // If user is viewing from max plan, show Downgrade
+            return currentPlanId === '3' ? 'Downgrade' : 'Subscribe';
+        }
+        
+        // Default to Subscribe for any other case
+        return 'Subscribe';
+    };
 
     return (
         <div className="flex flex-col gap-y-6 justify-between p-8 rounded-lg border bg-card border-border h-full">
@@ -81,14 +112,14 @@ export function ProductCard({ product, isCurrentPlan = false, userEmail }: Produ
                         disabled
                         className="h-10 px-6 flex items-center justify-center rounded-full bg-muted text-muted-foreground font-medium cursor-not-allowed"
                     >
-                        Subscribed
+                        {getActionText()}
                     </button>
                 ) : (
                     <Link
                         className="h-10 px-6 flex items-center justify-center rounded-full bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
                         href={`/checkout?productId=${product.id}${userEmail ? `&email=${userEmail}` : ''}`}
                     >
-                        Subscribe
+                        {getActionText()}
                     </Link>
                 )}
                 <span className="text-muted-foreground">{price}</span>

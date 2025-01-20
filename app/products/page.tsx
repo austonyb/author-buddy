@@ -30,6 +30,9 @@ export default async function ProductsPage({
     .select('plan_id')
     .single();
 
+  // Get current plan ID from URL param
+  const currentPlanId = searchParams.plan;
+
   return (
     <div className="container max-w-6xl py-8 space-y-8">
       <div className="space-y-4">
@@ -46,6 +49,7 @@ export default async function ProductsPage({
             product={product}
             isCurrentPlan={currentSubscription?.plan_id === product.id}
             userEmail={userEmail}
+            currentPlanId={currentPlanId}
           />
         ))}
       </div>
