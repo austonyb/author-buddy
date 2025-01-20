@@ -1,7 +1,8 @@
 import { Suspense } from 'react';
 
 type Props = {
-    searchParams?: { [key: string]: string | string[] | undefined };
+    params: { [key: string]: string | string[] | undefined };
+    searchParams: { [key: string]: string | string[] | undefined };
 };
 
 function ConfirmationContent({ checkoutId, sessionToken }: { checkoutId: string, sessionToken: string }) {
@@ -19,11 +20,12 @@ function ConfirmationContent({ checkoutId, sessionToken }: { checkoutId: string,
     );
 }
 
-export default async function Page({ searchParams }: Props) {
+export default async function Page({ params, searchParams }: Props) {
     // Await searchParams to satisfy Next.js requirements
-    const params = await Promise.resolve(searchParams);
-    const checkoutId = params?.checkoutId as string;
-    const customer_session_token = params?.customer_session_token as string;
+    const paramsResolved = await Promise.resolve(params);
+    const searchParamsResolved = await Promise.resolve(searchParams);
+    const checkoutId = searchParamsResolved?.checkoutId as string;
+    const customer_session_token = searchParamsResolved?.customer_session_token as string;
 
     if (!checkoutId || !customer_session_token) {
         return <div>Missing required parameters</div>;
