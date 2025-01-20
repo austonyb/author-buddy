@@ -22,6 +22,7 @@ function ConfirmationContent({ checkoutId, sessionToken }: { checkoutId: string,
 
 export default async function Page({ params, searchParams }: Props) {
     // Await searchParams to satisfy Next.js requirements
+    //eslint-disable-next-line
     const paramsResolved = await Promise.resolve(params);
     const searchParamsResolved = await Promise.resolve(searchParams);
     const checkoutId = searchParamsResolved?.checkoutId as string;
