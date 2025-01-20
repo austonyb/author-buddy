@@ -7,8 +7,12 @@ export async function GET(request: Request) {
   // https://supabase.com/docs/guides/auth/server-side/nextjs
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const origin = requestUrl.origin;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
   const redirectTo = requestUrl.searchParams.get("redirect_to")?.toString();
+
+  if (!siteUrl) {
+    throw new Error('NEXT_PUBLIC_SITE_URL is not set');
+  }
 
   if (code) {
     const supabase = await createClient();
@@ -16,9 +20,9 @@ export async function GET(request: Request) {
   }
 
   if (redirectTo) {
-    return NextResponse.redirect(`${origin}${redirectTo}`);
+    return NextResponse.redirect(`${siteUrl}${redirectTo}`);
   }
 
   // URL to redirect to after sign up process completes
-  return NextResponse.redirect(`${origin}/tools/asin-gather`);
+  return NextResponse.redirect(`${siteUrl}/tools/asin-gather`);
 }
