@@ -55,14 +55,15 @@ async function updateUserPlan(
 		currentPeriodStart?: string;
 		currentPeriodEnd?: string;
 		cancelAtPeriodEnd?: boolean;
-	}
+	},
+	polarCustomerId?: string
 ) {
 	if (!userId) {
 		console.error(`[${eventType}] No user ID provided for plan update`);
 		return false;
 	}
 
-	console.log(`[${eventType}] Updating plan for user:`, { userId, planId, subscriptionData });
+	console.log(`[${eventType}] Updating plan for user:`, { userId, planId, subscriptionData, polarCustomerId });
 
 	// Check for existing active plan
 	const { data: existingPlan, error: getPlanError } = await supabase
@@ -98,7 +99,8 @@ async function updateUserPlan(
 				start_date: startDate,
 				end_date: endDate,
 				usage_tracking: usageTracking,
-				cancellation_date: null // Clear any cancellation if they're resubscribing
+				cancellation_date: null, // Clear any cancellation if they're resubscribing
+				...(polarCustomerId && { polar_customer_id: polarCustomerId })
 			})
 			.eq('id', existingPlan.id);
 
@@ -116,7 +118,8 @@ async function updateUserPlan(
 				plan_id: planId,
 				start_date: startDate,
 				end_date: endDate,
-				usage_tracking: usageTracking
+				usage_tracking: usageTracking,
+				...(polarCustomerId && { polar_customer_id: polarCustomerId })
 			});
 
 		if (insertError) {
@@ -157,8 +160,15 @@ export const POST = Webhooks({
 				// Map Polar product to our plan ID
 				const planId = payload.data.product.name === 'Author Buddy Max' ? 3 : 1;
 				
-				// Update or create user plan
-				const success = await updateUserPlan(supabase, user.id, planId, payload.type);
+				// Update or create user plan with Polar customer ID
+				const success = await updateUserPlan(
+					supabase, 
+					user.id, 
+					planId, 
+					payload.type,
+					undefined,
+					payload.data.customer?.id
+				);
 				if (success) {
 					console.log(`[${payload.type}] Successfully updated plan for user ${user.email}`);
 				}
@@ -183,12 +193,19 @@ export const POST = Webhooks({
 				// Map Polar product to our plan ID
 				const planId = payload.data.product.name === 'Author Buddy Max' ? 3 : 1;
 				
-				// Update or create user plan with subscription dates
-				const success = await updateUserPlan(supabase, user.id, planId, payload.type, {
-					currentPeriodStart: payload.data.currentPeriodStart,
-					currentPeriodEnd: payload.data.currentPeriodEnd,
-					cancelAtPeriodEnd: payload.data.cancelAtPeriodEnd
-				});
+				// Update or create user plan with subscription dates and Polar customer ID
+				const success = await updateUserPlan(
+					supabase, 
+					user.id, 
+					planId, 
+					payload.type, 
+					{
+						currentPeriodStart: payload.data.currentPeriodStart,
+						currentPeriodEnd: payload.data.currentPeriodEnd,
+						cancelAtPeriodEnd: payload.data.cancelAtPeriodEnd
+					},
+					payload.data.customer?.id
+				);
 				if (success) {
 					console.log(`[${payload.type}] Successfully updated plan for user ${user.email}`);
 				}

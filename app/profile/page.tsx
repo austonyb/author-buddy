@@ -81,6 +81,12 @@ export default async function ProfilePage() {
                   >
                     Subscribed
                   </button>
+                  <a 
+                    href="/portal"
+                    className="h-8 px-4 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+                  >
+                    Manage Subscription
+                  </a>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Up to {userPlan.plan.max_usage} lookups per month
