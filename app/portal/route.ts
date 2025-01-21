@@ -18,14 +18,27 @@ export const GET = CustomerPortal({
     // Get the user's Polar customer ID from their plan
     const { data: userPlan, error: planError } = await supabase
       .from('user_plans')
-      .select('polar_customer_id')
+      .select(`
+        polar_customer_id,
+        plan:plans (
+          name
+        )
+      `)
       .eq('user_id', user.id)
+      .is('end_date', null)
       .order('start_date', { ascending: false })
       .limit(1)
       .single();
     
-    if (planError || !userPlan?.polar_customer_id) {
-      throw new Error("No active plan found with Polar customer ID");
+    if (planError) {
+      console.error("Error fetching user plan:", planError);
+      throw new Error("Error fetching user plan");
+    }
+
+    if (!userPlan?.polar_customer_id) {
+      console.error("No Polar customer ID found for user:", user.id);
+      // Redirect to pricing page or show error
+      throw new Error("No active subscription found");
     }
     
     return userPlan.polar_customer_id;

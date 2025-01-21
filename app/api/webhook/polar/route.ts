@@ -226,7 +226,8 @@ export const POST = Webhooks({
 					.from('user_plans')
 					.update({
 						cancellation_date: new Date().toISOString(),
-						end_date: payload.data.currentPeriodEnd
+						end_date: payload.data.currentPeriodEnd,
+						polar_customer_id: payload.data.customer?.id
 					})
 					.eq('user_id', user.id)
 					.is('end_date', null);
@@ -252,7 +253,8 @@ export const POST = Webhooks({
 				const { error } = await supabase
 					.from('user_plans')
 					.update({
-						end_date: new Date().toISOString()
+						end_date: new Date().toISOString(),
+						polar_customer_id: payload.data.customer?.id
 					})
 					.eq('user_id', user.id)
 					.is('end_date', null);
