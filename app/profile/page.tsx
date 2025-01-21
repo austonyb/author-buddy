@@ -71,7 +71,7 @@ export default async function ProfilePage() {
         <section className="mb-12 p-8 rounded-lg border bg-card border-border">
           <div className="flex flex-col gap-y-4">
             <h2 className="text-xl font-semibold text-foreground">Current Plan</h2>
-            {userPlan ? (
+            {userPlan && userPlan.plan ? (
               <div className="flex flex-col gap-y-2">
                 <div className="flex flex-row items-center gap-x-2">
                   <span className="font-medium text-foreground">{userPlan.plan.name}</span>
@@ -86,7 +86,7 @@ export default async function ProfilePage() {
                   Up to {userPlan.plan.max_usage} lookups per month
                 </p>
                 <div className="mt-4">
-                  <Progress value={(currentUsage / userPlan.plan.max_usage) * 100} className="h-2" />
+                  <Progress value={(currentUsage / (userPlan.plan.max_usage || 1)) * 100} className="h-2" />
                   <div className="flex justify-between items-center mt-2">
                     <p className="text-sm text-muted-foreground">
                       {currentUsage} / {userPlan.plan.max_usage} lookups used this month
