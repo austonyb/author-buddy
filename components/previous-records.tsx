@@ -95,7 +95,7 @@ export function PreviousRecords({ downloads }: { downloads: Download[] }) {
         )}
       </CardContent>
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="bottom">
+        <SheetContent side="bottom" className="h-[80vh] sm:h-[85vh] md:h-[90vh]">
           <SheetHeader>
             <SheetTitle className="text-xl md:text-2xl text-center mb-4">
               Excel Spreadsheet Viewer
