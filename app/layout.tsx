@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/server";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
+import { Analytics } from "@vercel/analytics/react"
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -78,6 +79,7 @@ export default async function RootLayout({
             </div>
           </main>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
