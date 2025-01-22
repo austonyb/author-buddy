@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Send } from "lucide-react";
+import { Send, Loader2 } from "lucide-react";
 import { useActionState } from "react";
 import { fetchProductData } from "@/lib/actions";
 
@@ -28,7 +28,11 @@ export function UrlInputForm() {
               required
             />
             <Button type="submit" disabled={isPending}>
-              <Send className="w-4 h-4" />
+              {isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
             </Button>
           </div>
         </div>
