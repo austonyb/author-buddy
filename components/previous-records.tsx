@@ -39,7 +39,7 @@ export function PreviousRecords({ downloads }: { downloads: Download[] }) {
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <h3 className="text-md font-semibold">Previous downloads</h3>
+        <h3 className="text-md font-semibold">Downloads</h3>
       </CardHeader>
       <CardContent className="space-y-4">
         {paginatedDownloads.map((download) => (

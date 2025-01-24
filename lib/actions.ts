@@ -1,59 +1,148 @@
 "use server";
 
+import { encodedRedirect } from "@/utils/utils";
 import { createClient } from "@/utils/supabase/server";
-import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function fetchProductData(prevState: unknown, formData: FormData) {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+export const signUpAction = async (formData: FormData) => {
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+  const supabase = await createClient();
+  const origin = (await headers()).get("origin");
 
-    if (!session) {
-      return { error: "Please sign in to use this feature" };
-    }
-
-    const url = formData.get("url") as string;
-    
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-
-    try {
-      const response = await fetch(
-        "https://ictdjoiczpcthnkbedpz.supabase.co/functions/v1/asin-gather",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ url }),
-          signal: controller.signal
-        }
-      );
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        if (response.status === 504) {
-          return { error: "The request timed out. The URL may contain too much data to process. Try a URL with fewer products." };
-        }
-        return { error: `Server error: ${response.status}` };
-      }
-
-      const data = await response.json();
-      revalidatePath("/tools/asin-gather");
-      return { data };
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        return { error: "The request took too long to complete. Please try again with a URL containing fewer products." };
-      }
-      throw error; // Re-throw other errors to be caught by outer catch
-    }
-  } catch (error) {
-    console.error('Fetch error:', error);
-    return { error: "An error occurred while processing your request. Please try again." };
+  if (!email || !password) {
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      "Email and password are required",
+    );
   }
-}
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${origin}/auth/callback`,
+    },
+  });
+
+  if (error) {
+    return encodedRedirect("error", "/sign-up", error.message);
+  }
+
+  return encodedRedirect(
+    "success",
+    "/sign-up",
+    "Check your email for a confirmation link.",
+  );
+};
+
+export const signInAction = async (formData: FormData) => {
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+  const supabase = await createClient();
+
+  if (!email || !password) {
+    return encodedRedirect(
+      "error",
+      "/sign-in",
+      "Email and password are required",
+    );
+  }
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return encodedRedirect("error", "/sign-in", error.message);
+  }
+
+  return redirect("/");
+};
+
+export const signInWithGoogleAction = async () => {
+  const supabase = await createClient();
+  const origin = (await headers()).get("origin");
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${origin}/auth/callback`,
+    },
+  });
+
+  if (error) {
+    return encodedRedirect("error", "/sign-in", error.message);
+  }
+
+  return redirect(data.url);
+};
+
+export const forgotPasswordAction = async (formData: FormData) => {
+  const email = formData.get("email")?.toString();
+  const supabase = await createClient();
+  const origin = (await headers()).get("origin");
+
+  if (!email) {
+    return encodedRedirect("error", "/forgot-password", "Email is required");
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=/reset-password`,
+  });
+
+  if (error) {
+    return encodedRedirect("error", "/forgot-password", error.message);
+  }
+
+  return encodedRedirect(
+    "success",
+    "/forgot-password",
+    "Check your email for a password reset link.",
+  );
+};
+
+export const resetPasswordAction = async (formData: FormData) => {
+  const password = formData.get("password")?.toString();
+  const passwordConfirm = formData.get("passwordConfirm")?.toString();
+  const supabase = await createClient();
+
+  if (!password || !passwordConfirm) {
+    return encodedRedirect(
+      "error",
+      "/reset-password",
+      "Password and password confirmation are required",
+    );
+  }
+
+  if (password !== passwordConfirm) {
+    return encodedRedirect(
+      "error",
+      "/reset-password",
+      "Passwords do not match",
+    );
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    password,
+  });
+
+  if (error) {
+    return encodedRedirect("error", "/reset-password", error.message);
+  }
+
+  return encodedRedirect(
+    "success",
+    "/reset-password",
+    "Password has been reset. You can now sign in with your new password.",
+  );
+};
+
+export const signOutAction = async () => {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  return redirect("/");
+};
