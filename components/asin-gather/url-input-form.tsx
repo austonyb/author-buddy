@@ -26,6 +26,7 @@ export function UrlInputForm() {
               placeholder="https://www.amazon.com/stores/author/XXXXXXX/allbooks"
               pattern="https?:\/\/[^\s]+"
               required
+              disabled={isPending}
             />
             <Button type="submit" disabled={isPending}>
               {isPending ? (
