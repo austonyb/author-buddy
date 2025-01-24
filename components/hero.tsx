@@ -31,7 +31,7 @@ const Hero = () => {
         </h1>
         <h3 className="text-muted-foreground">
           <Balancer>
-            Your one stop shop for scraping and analyzing data for marketing
+            Your one stop shop for gathering and analyzing data for marketing
             your books.
           </Balancer>
         </h3>
