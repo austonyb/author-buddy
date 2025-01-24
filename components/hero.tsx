@@ -36,7 +36,7 @@ const Hero = () => {
           </Balancer>
         </h3>
         <Link
-          href="https://youtu.be/i6wBy_oxgnM"
+          href="https://youtu.be/GEvr-0fdG_E"
           className="mt-4 text-md font-medium hover:text-gray-500 underline decoration-2 underline-offset-4"
         >
           Watch a tutorial →
