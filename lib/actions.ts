@@ -4,7 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function fetchProductData(prevState: any, formData: FormData) {
+export async function fetchProductData(prevState: unknown, formData: FormData) {
   try {
     const supabase = await createClient();
     const {
@@ -46,13 +46,13 @@ export async function fetchProductData(prevState: any, formData: FormData) {
       const data = await response.json();
       revalidatePath("/tools/asin-gather");
       return { data };
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
         return { error: "The request took too long to complete. Please try again with a URL containing fewer products." };
       }
       throw error; // Re-throw other errors to be caught by outer catch
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Fetch error:', error);
     return { error: "An error occurred while processing your request. Please try again." };
   }
