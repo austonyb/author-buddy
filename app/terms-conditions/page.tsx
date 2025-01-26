@@ -13,7 +13,7 @@ export default function TermsAndConditions() {
       <p className="text-sm text-gray-500 mb-8">Last Updated: January 26, 2025</p>
 
       <div className="prose prose-lg">
-        <p>Welcome to Author Buddy! These Terms and Conditions ("Terms") govern your use of the Author Buddy web application (the "App"), available at <Link href="/" className="text-blue-600 hover:text-blue-800">https://authorbuddy.app</Link>. By accessing or using the App, you agree to be bound by these Terms. If you do not agree with these Terms, please do not use the App.</p>
+        <p>Welcome to Author Buddy! These Terms and Conditions (&quot;Terms&quot;) govern your use of the Author Buddy web application (the &quot;App&quot;), available at <Link href="/" className="text-blue-600 hover:text-blue-800">https://authorbuddy.app</Link>. By accessing or using the App, you agree to be bound by these Terms. If you do not agree with these Terms, please do not use the App.</p>
         
         <hr className="my-8" />
         
@@ -41,7 +41,7 @@ export default function TermsAndConditions() {
         <ul className="list-disc pl-6 space-y-2">
           <li>Violate any applicable laws or regulations.</li>
           <li>Submit false, misleading, or inappropriate content.</li>
-          <li>Engage in activities that could harm, disable, or impair the App's functionality.</li>
+          <li>Engage in activities that could harm, disable, or impair the App&apos;s functionality.</li>
           <li>Attempt to gain unauthorized access to the App or its related systems.</li>
         </ul>
         
@@ -72,7 +72,7 @@ export default function TermsAndConditions() {
         <h2 className="text-2xl font-semibold mt-8 mb-4">8. Third-Party Services</h2>
         <ul className="list-disc pl-6 space-y-2">
           <li><strong>Analytics and Authentication:</strong> The App utilizes Vercel Analytics for web analytics and Google for authentication purposes. By using the App, you agree to their respective terms and privacy policies.</li>
-          <li><strong>Payments:</strong> Payments, if applicable, are processed through a third-party provider, Polar. Author Buddy does not store or process payment information directly. By making a payment, you agree to Polar's terms and conditions and privacy policy.</li>
+          <li><strong>Payments:</strong> Payments, if applicable, are processed through a third-party provider, Polar. Author Buddy does not store or process payment information directly. By making a payment, you agree to Polar&apos;s terms and conditions and privacy policy.</li>
         </ul>
         
         <hr className="my-8" />
@@ -83,7 +83,7 @@ export default function TermsAndConditions() {
         <hr className="my-8" />
         
         <h2 className="text-2xl font-semibold mt-8 mb-4">10. Disclaimer of Warranties</h2>
-        <p>The App is provided "as is" and "as available" without warranties of any kind, either express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, or non-infringement. We do not guarantee that the App will be error-free or uninterrupted.</p>
+        <p>The App is provided &quot;as is&quot; and &quot;as available&quot; without warranties of any kind, either express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, or non-infringement. We do not guarantee that the App will be error-free or uninterrupted.</p>
         
         <hr className="my-8" />
         
