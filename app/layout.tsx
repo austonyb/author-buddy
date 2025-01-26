@@ -74,6 +74,7 @@ export default async function RootLayout({
                     Untold Studios
                   </a>
                 </p>
+                <Link href={"/terms-conditions"}>Terms and Conditions</Link>
                 <ThemeSwitcher />
               </footer>
             </div>
