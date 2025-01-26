@@ -46,11 +46,24 @@ export default async function RootLayout({
               <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
                 <div className="w-full flex justify-between items-center p-3 px-5 text-sm">
                   <div className="flex gap-5 items-center font-semibold">
-                    <Link href={"/"}>Author Buddy</Link>
+                    <Link
+                      href={"/"}
+                      className="hover:underline"
+                    >Author Buddy</Link>
+                    <Link
+                      href={"/pricing"}
+                      className="hover:underline"
+                    >Pricing</Link>
                     {user && (
                       <>
-                        <Link href={"/tools/asin-gather"}>Tools</Link>
-                        <Link href={"/profile"}>Account and Usage</Link>
+                        <Link
+                          href={"/tools/asin-gather"}
+                          className="hover:underline"
+                        >Tools</Link>
+                        <Link
+                          href={"/profile"}
+                          className="hover:underline"
+                        >Account and Usage</Link>
                       </>
                     )}
                   </div>
