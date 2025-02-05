@@ -44,7 +44,7 @@ export default function CookieConsentBanner() {
             expires={365}
             containerClasses="fixed bottom-4 mx-auto max-w-[90%] left-0 right-0 rounded-lg shadow-lg"
         >
-            We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking "Accept All Cookies", you consent to our use of cookies. We collect and process personal data as described in our{" "}
+            We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking &quot;Accept All Cookies&quot;, you consent to our use of cookies. We collect and process personal data as described in our{" "}
             <Link href="/terms-conditions" className="font-medium underline underline-offset-4 hover:text-primary">
                 Terms and Conditions
             </Link>
