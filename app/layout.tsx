@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import Link from "next/link";
 import { Analytics } from "@vercel/analytics/react"
 import "./globals.css";
+import CookieConsentBanner from "@/components/cookie-consent";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -76,6 +77,7 @@ export default async function RootLayout({
               <div className="flex flex-col gap-20 p-5">{children}</div>
 
               <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
+                <CookieConsentBanner />
                 <p>
                   Built by{" "}
                   <a
