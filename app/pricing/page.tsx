@@ -23,7 +23,7 @@ export default function PricingPage() {
             <CardTitle>Lite Plan</CardTitle>
             <CardDescription>Perfect for aspiring indie-authors</CardDescription>
             <div className="mt-4">
-              <span className="text-4xl font-bold">$25</span>
+              <span className="text-4xl font-bold">$5</span>
               <span className="text-muted-foreground">/month</span>
             </div>
           </CardHeader>
@@ -59,7 +59,7 @@ export default function PricingPage() {
             <CardTitle>Max Plan</CardTitle>
             <CardDescription>For serious authors and self-publishers</CardDescription>
             <div className="mt-4">
-              <span className="text-4xl font-bold">$95</span>
+              <span className="text-4xl font-bold">$20</span>
               <span className="text-muted-foreground">/month</span>
             </div>
           </CardHeader>
