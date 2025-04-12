@@ -21,6 +21,7 @@ const sanitizeErrorMessage = (error: string) => {
     '408': "The request took too long. Please try again.",
     '401': "Please sign in to use this feature.",
     '403': "You don't have permission to access this resource.",
+    '429': "You've run out of credits on the free tier. Please upgrade your plan to continue.",
     'plan_limit': "You've reached your monthly usage limit. Please upgrade your plan to continue.",
     'no_plan': "You don't have an active plan. Please subscribe to use this feature.",
     'default': "An unexpected error occurred. Please try again."
@@ -125,7 +126,12 @@ export function UrlInputForm() {
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-          throw new Error(response.status.toString());
+          // Handle specific HTTP error codes
+          if (response.status === 429) {
+            throw new Error('429');
+          } else {
+            throw new Error(response.status.toString());
+          }
         }
 
         const responseData = await response.json();
@@ -173,7 +179,6 @@ export function UrlInputForm() {
               id="url"
               name="url"
               placeholder="https://www.amazon.com/stores/author/XXXXXXX/allbooks"
-              pattern={AMAZON_URL_PATTERN.source}
               title="Please enter a valid Amazon author page URL"
               required
               disabled={isPending}
@@ -194,7 +199,7 @@ export function UrlInputForm() {
             <AlertTitle>Error</AlertTitle>
             <AlertDescription className="flex flex-col gap-2">
               {error}
-              {error.includes("upgrade your plan") && (
+              {(error.includes("upgrade your plan") || error.includes("out of credits")) && (
                 <Link href="/pricing">
                   <Button variant="outline" size="sm">
                     Upgrade Plan
