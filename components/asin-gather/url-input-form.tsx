@@ -63,6 +63,7 @@ export function UrlInputForm() {
       return url;
     } catch (e) {
       // If URL parsing fails, return the original URL
+      console.error('Failed to normalize URL:', e);
       return url;
     }
   };
