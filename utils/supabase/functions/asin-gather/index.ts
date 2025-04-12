@@ -135,7 +135,7 @@ async function checkUserPlanAndUsage(supabaseClient: any, userId: string): Promi
 
     if (!userPlan) {
       console.log('No active plan found for user');
-      return { allowed: false, error: 'No active plan found' };
+      return { allowed: false, error: 'No active plan found. Please sign up for the free tier.' };
     }
 
     if (!userPlan.plans) {
